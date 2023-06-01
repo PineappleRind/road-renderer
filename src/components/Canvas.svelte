@@ -1,7 +1,18 @@
 <script lang="ts">
+  import { onMount } from "svelte";
+  import events from "../events/index";
+  import { ctx as ctxStore } from "../render";
   let canvas: HTMLCanvasElement;
-  let ctx: CanvasRenderingContext2D = canvas.getContext("2d");
-  if (!ctx) throw new Error("NO CTX??!?");
+  onMount(() => {
+    let ctx: CanvasRenderingContext2D = canvas.getContext("2d");
+    if (!ctx) throw new Error("NO CTX??!?");
+    scaleCanvasToWindow(canvas, ctx);
+    for (const event in events) {
+      canvas[`on${event}`] = events[event];
+    }
+    ctxStore.set(ctx);
+  });
+
   /**
    * Scale the provided canvas to the window.
    * This also makes the resolution correct for high-dpi displays.

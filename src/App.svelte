@@ -1,20 +1,10 @@
 <script lang="ts">
+  import Canvas from "./components/Canvas.svelte";
   import Popover from "./components/Popover.svelte";
-
-  
 </script>
 
 <main>
-    <!-- <Popover actions={[
-        {
-            name: "Aahah",
-            action: null
-        },
-        {
-            name: "Aahah",
-            action: null
-        }
-    ]} coordinates={{x: 100, y: 400}}></Popover> -->
+    <Canvas/>
 </main>
 
 <style>

@@ -1,3 +1,7 @@
+<script context="module" lang="ts">
+  export let popoverOpen: HTMLDivElement | undefined;
+</script>
+
 <script lang="ts">
   type Action = {
     name: string;
@@ -6,11 +10,42 @@
   /** The coordinates of the top left corner of the popover */
   export let coordinates: { x: number; y: number };
   export let actions: Action[];
+
+  if (popoverOpen) {
+    popoverOpen.remove();
+    popoverOpen = null;
+  }
+
+  let clickOutsideHandler = (e) => {
+    let inside = (e.target as HTMLElement)?.closest(".popover");
+    console.log("Wahoo.")
+    if (!inside && popoverOpen) {
+      popoverOpen.remove();
+      popoverOpen = null;
+      document.removeEventListener("click", clickOutsideHandler)
+    }
+  };
+  document.addEventListener("click", clickOutsideHandler);
+  
 </script>
 
-<div class="popover" style={`--x: ${coordinates.x}px; --y: ${coordinates.y}px`}>
+<div
+  class="popover"
+  bind:this={popoverOpen}
+  style={`--x: ${coordinates.x}px; --y: ${coordinates.y}px`}
+>
   {#each actions as action}
-    <div class="popover-item">{action.name}</div>
+    <!-- svelte-ignore a11y-click-events-have-key-events -->
+    <div
+      class="popover-item"
+      on:click={() => {
+        action.action();
+        popoverOpen.remove();
+        popoverOpen = null;
+      }}
+    >
+      {action.name}
+    </div>
   {/each}
 </div>
 
