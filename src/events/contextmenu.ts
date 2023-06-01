@@ -16,9 +16,6 @@ export function contextmenu(e: MouseEvent) {
                     action: () => Road.create({
                         x: e.clientX,
                         y: e.clientY
-                    }, {
-                        x: e.clientX + 100,
-                        y: e.clientY + 100
                     }),
                 },
             ],

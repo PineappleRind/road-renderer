@@ -5,10 +5,12 @@ import { roads } from "./road/store";
 export let ctx = writable<CanvasRenderingContext2D>();
 
 export function render(ctx: CanvasRenderingContext2D) {
+    if (!ctx) return;
+    ctx.clearRect(0, 0, window.innerWidth, window.innerHeight)
     Road.render(ctx, get(roads));
 }
 
 roads.subscribe(() => {
-    console.log(get(ctx))
     render(get(ctx));
+    console.log(get(roads))
 })

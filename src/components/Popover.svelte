@@ -18,7 +18,6 @@
 
   let clickOutsideHandler = (e) => {
     let inside = (e.target as HTMLElement)?.closest(".popover");
-    console.log("Wahoo.")
     if (!inside && popoverOpen) {
       popoverOpen.remove();
       popoverOpen = null;
@@ -38,7 +37,8 @@
     <!-- svelte-ignore a11y-click-events-have-key-events -->
     <div
       class="popover-item"
-      on:click={() => {
+      on:click={(e) => {
+        e.stopImmediatePropagation();
         action.action();
         popoverOpen.remove();
         popoverOpen = null;
