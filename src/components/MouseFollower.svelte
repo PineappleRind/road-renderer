@@ -4,29 +4,30 @@
 
 <script lang="ts">
   import { onMount } from "svelte";
+  import { destroyMouseFollower } from "./MouseFollower";
+  import { mousePos } from "../events/store";
+  import type { Coordinate } from "../types/position";
 
-  if (mouseFollowerOpen) {
-    mouseFollowerOpen.remove();
-    mouseFollowerOpen = null;
-  }
-  const onMouseMove = (e: MouseEvent) => {
-    if (!mouseFollowerOpen || !e) return;
+  if (mouseFollowerOpen) destroyMouseFollower();
+
+  const onMouseMove = (coords: Coordinate) => {
+    if (!mouseFollowerOpen || !document.contains(mouseFollowerOpen) || !coords)
+      return;
     const rect = mouseFollowerOpen.getBoundingClientRect();
     const x =
-      e.clientX + 14 + rect.width > window.innerWidth
-        ? e.clientX - rect.width
-        : e.clientX + 14;
+      coords.x + 14 + rect.width > window.innerWidth
+        ? coords.x - rect.width
+        : coords.x + 14;
     const y =
-      e.clientY + 14 + rect.height > window.innerHeight
-        ? e.clientY - rect.height
-        : e.clientY + 14;
+      coords.y + 14 + rect.height > window.innerHeight
+        ? coords.y - rect.height
+        : coords.y + 14;
 
     mouseFollowerOpen.style.setProperty("--x", `${x}px`);
     mouseFollowerOpen.style.setProperty("--y", `${y}px`);
   };
-  document.removeEventListener("onmousemove", onMouseMove);
   onMount(() => {
-    document.addEventListener("mousemove", (e) => onMouseMove(e));
+    mousePos.subscribe(onMouseMove);
   });
 </script>
 

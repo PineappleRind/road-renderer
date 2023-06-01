@@ -62,6 +62,7 @@
     background: var(--background-l1);
     min-width: 10rem;
     max-width: 30rem;
+    z-index: 2;
   }
   .popover-item {
     padding: 4px 10px;
