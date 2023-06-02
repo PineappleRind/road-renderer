@@ -14,12 +14,21 @@ export function line(
 	ctx.lineTo(to.x, to.y);
 	ctx.stroke();
 }
-
+export function path(
+	ctx: CanvasRenderingContext2D,
+	path: Path2D,
+	color: string = "black",
+	thickness: number = 1,
+) {
+	ctx.strokeStyle = color;
+	ctx.lineWidth = thickness;
+	ctx.stroke(path);
+}
 export function point(
 	ctx: CanvasRenderingContext2D,
 	coordinate: Coordinate,
 	color: string = "black",
-	radius: number = 2
+	radius: number = 2,
 ) {
 	ctx.fillStyle = color;
 	ctx.beginPath();

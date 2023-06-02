@@ -8,13 +8,15 @@ export interface Road {
 	ghost?: boolean;
 }
 
-type KeysWithValsOfType<T,V> = keyof { [ P in keyof T as T[P] extends V ? P : never ] : P };
+type KeysWithValsOfType<T, V> = keyof {
+	[P in keyof T as T[P] extends V ? P : never]: P;
+};
 
 export interface Handle {
 	parent: string;
 	affects: KeysWithValsOfType<Road, Coordinate>;
 	position: Coordinate;
-	state?: HandleState
+	state?: HandleState;
 }
 
 export enum HandleState {

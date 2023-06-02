@@ -8,6 +8,8 @@
   import { mouseState } from "../events/store";
   import type { Coordinate } from "../types/position";
 
+  const MARGIN = 14;
+
   if (mouseFollowerOpen) destroyMouseFollower();
 
   const onMouseMove = (coords: Coordinate) => {
@@ -15,13 +17,13 @@
       return;
     const rect = mouseFollowerOpen.getBoundingClientRect();
     const x =
-      coords.x + 14 + rect.width > window.innerWidth
+      coords.x + MARGIN + rect.width > window.innerWidth
         ? coords.x - rect.width
-        : coords.x + 14;
+        : coords.x + MARGIN;
     const y =
-      coords.y + 14 + rect.height > window.innerHeight
+      coords.y + MARGIN + rect.height > window.innerHeight
         ? coords.y - rect.height
-        : coords.y + 14;
+        : coords.y + MARGIN;
 
     mouseFollowerOpen.style.setProperty("--x", `${x}px`);
     mouseFollowerOpen.style.setProperty("--y", `${y}px`);

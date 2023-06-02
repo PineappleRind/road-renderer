@@ -6,6 +6,7 @@ import {
 import type { Coordinate } from "../types/position";
 import { addRoadToStore, editRoad, removeRoadFromStore, roads } from "./store";
 import { mouseState } from "../events/store";
+import { lerp } from "../utils/math";
 
 export default async function creationWizard(
 	from: Coordinate | undefined,
@@ -15,10 +16,11 @@ export default async function creationWizard(
 		from = await getUserMouseInput("Choose a start point for your road");
 
 	if (!to) {
-		createRoad(from, get(mouseState), "road-GHOST");
+		createRoad(from, get(mouseState), "road-GHOST", true);
 		const unsubscribe = mouseState.subscribe((pos) => {
 			editRoad("road-GHOST", "to", pos);
-		})
+			editRoad("road-GHOST", "curve", halfway(from, pos));
+		});
 		to = await getUserMouseInput("Choose an end point");
 		removeRoadFromStore("road-GHOST");
 		unsubscribe();
@@ -48,10 +50,21 @@ function generateRoadID() {
 		.padStart(8, "0");
 }
 
-function createRoad(from: Coordinate, to: Coordinate, roadID: string) {
+function createRoad(
+	from: Coordinate,
+	to: Coordinate,
+	roadID: string,
+	ghost: boolean = false,
+) {
 	addRoadToStore({
 		from,
 		to,
+		curve: halfway(from, to),
 		id: roadID,
+		ghost,
 	});
+}
+
+function halfway(from: Coordinate, to: Coordinate): Coordinate {
+	return { x: lerp(from.x, to.x, 0.5), y: lerp(from.y, to.y, 0.5) };
 }
