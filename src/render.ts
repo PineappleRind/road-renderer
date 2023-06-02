@@ -3,7 +3,7 @@ import Road from "./road";
 import { roads } from "./road/store";
 import { handles } from "./road/handle";
 
-export let ctx = writable<CanvasRenderingContext2D>();
+export const ctx = writable<CanvasRenderingContext2D>();
 
 export function render(ctx: CanvasRenderingContext2D) {
 	if (!ctx) return;

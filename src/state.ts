@@ -1,12 +1,6 @@
-import { writable } from "svelte/store";
+import { writable, type Writable } from "svelte/store";
 
-export enum AppState {
-	Idle = 0,
-	IsCreatingRoad = 1,
-}
-
-export const appState = writable<AppState>(AppState.Idle);
-
-export function setAppState(newState: AppState) {
-	appState.set(newState);
-}
+/**
+ *
+ */
+export const selected = writable<string | null>(null);

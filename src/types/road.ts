@@ -3,7 +3,7 @@ import type { Coordinate } from "./position";
 export interface Road {
 	id: string;
 	from: Coordinate;
-	to: Coordinate; // | Road;
+	to: Coordinate | string;
 	curve?: Coordinate;
 	ghost?: boolean;
 }
@@ -14,12 +14,15 @@ type KeysWithValsOfType<T, V> = keyof {
 
 export interface Handle {
 	parent: string;
-	affects: KeysWithValsOfType<Road, Coordinate>;
+	affects:
+		| KeysWithValsOfType<Road, Coordinate>
+		| KeysWithValsOfType<Road, string | Coordinate>;
 	position: Coordinate;
 	state?: HandleState;
 }
 
 export enum HandleState {
-	Inactive,
-	Dragging,
+	Inactive = 0,
+	Dragging = 1,
+	AwaitingConnection = 2,
 }

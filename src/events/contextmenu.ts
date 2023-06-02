@@ -13,7 +13,7 @@ export function contextmenu(e: MouseEvent) {
 			actions: [
 				{
 					name: "Create Road",
-					action: () => Road.create(menuPosition),
+					action: () => Road.create({ x: menuPosition.x, y: menuPosition.y }),
 				},
 			],
 		},

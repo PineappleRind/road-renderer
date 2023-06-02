@@ -1,20 +1,26 @@
-import { derived, get, writable } from "svelte/store";
-import { mouseState as mouseState } from "../events/store";
-import { editRoad, roads } from "./store";
+import { derived, get, writable, type Writable } from "svelte/store";
+import { mouseState } from "../events/store";
+import { editRoad, getRoad, reverseRoad, roads } from "./store";
 import type { Coordinate } from "../types/position";
-import { HandleState, type Handle, type Road } from "../types/road";
+import { HandleState, type Handle, type Road as RoadType } from "../types/road";
 import { distance } from "../utils/math";
+import {
+	createMouseFollower,
+	destroyMouseFollower,
+} from "../components/MouseFollower";
+import Road from ".";
 
 export const handles = derived(roads, (roads) => getAllHandlesFromRoads(roads));
 
 const RADIUS = 10;
-let draggingPoint = writable<Handle | null>(null);
+const draggingPoint = writable<Handle | null>(null);
+/** A road ID that we may connect to on mouseup */
+let potentialRoadConnectionHandle: Handle | null = null;
 function getHandleCollisions(mousePos: Coordinate): Handle | null {
-	let candidateHandles: Handle[] = [];
-	// already dragging a point?
-	// don't stop until mouseup
-	if (get(draggingPoint) !== null) return get(draggingPoint);
-	for (const handle of getAllHandlesFromRoads(get(roads))) {
+	const candidateHandles: Handle[] = [];
+	// If we're dragging a point, we're still going to loop through and find
+	// candidates, because we'll use them to determine potential connections
+	for (const handle of get(handles)) {
 		// if this handle doesn't intersect with the mouse, get rid of it
 		if (!mouseIntersectsWith(mousePos, handle.position, RADIUS)) continue;
 		// now put it as a candidate
@@ -24,9 +30,32 @@ function getHandleCollisions(mousePos: Coordinate): Handle | null {
 	candidateHandles.sort((a, b) =>
 		distance(a.position, mousePos) > distance(b.position, mousePos) ? 1 : -1,
 	);
+	// already dragging a point?
+	if (get(draggingPoint) !== null) {
+		// update its position
+		draggingPoint.set({
+			...get(draggingPoint),
+			position: mousePos,
+		});
+		console.log(candidateHandles);
+		// if we're dragging a point on top of another point..
+		if (validConnection(candidateHandles)) {
+			createMouseFollower("Let go to connect with this road");
+			potentialRoadConnectionHandle = candidateHandles[1];
+		} else destroyMouseFollower();
+		return get(draggingPoint);
+	}
 	// we have a point!
 	draggingPoint.set(candidateHandles[0]);
 	return candidateHandles[0];
+}
+
+function validConnection(candidateHandles: Handle[]) {
+	return (
+		candidateHandles.length === 2 &&
+		!candidateHandles.find((handle) => handle.affects === "curve") &&
+		candidateHandles[0].parent !== candidateHandles[1].parent
+	);
 }
 
 function mouseIntersectsWith(
@@ -41,54 +70,105 @@ function mouseIntersectsWith(
 		mousePos.y < point.y + radius
 	);
 }
-
-export function getAllHandlesFromRoads(aea: Road[]) {
-	let handles: Handle[] = [];
-	for (const road of aea) {
-		handles.push(
-			{
+/**
+ * If a handle has already been generated from these roads' from property,
+ * skip adding the `from` handle for that road, since we already have one.
+ * This means that there's a road connection. We don't want a duplicate...
+ */
+const resolvedRoads: string[] = [];
+export function getAllHandlesFromRoads(roads: RoadType[]) {
+	const roadHandles: Handle[] = [];
+	for (const road of roads) {
+		roadHandles.push({
+			position: road.curve,
+			affects: "curve",
+			parent: road.id,
+		});
+		if (!resolvedRoads.includes(road.id))
+			roadHandles.push({
 				position: road.from,
 				affects: "from",
 				parent: road.id,
-			},
-			{
+			});
+		if (typeof road.to !== "string")
+			roadHandles.push({
 				position: road.to,
 				affects: "to",
 				parent: road.id,
-			},
-			{
-				position: road.curve,
-				affects: "curve",
+			});
+		// at this point road.to must be an unresolved road ID
+		else
+			roadHandles.push({
+				position: resolveRoadHandle(road.to).from,
+				affects: "to",
 				parent: road.id,
-			},
-		);
+			});
 	}
-	return handles;
+	return roadHandles;
+}
+
+function resolveRoadHandle(mysteriousRoadID: string): RoadType {
+	const found = Road.find(mysteriousRoadID);
+	resolvedRoads.push(found.id);
+	return found;
 }
 
 function handleMovement(handle: Handle, coordinate: Coordinate) {
-	let parent = get(roads).find((x) => x.id === handle.parent);
+	const parent = get(roads).find((x) => x.id === handle.parent);
 	if (!parent) throw new Error("No parent");
-	editRoad(parent.id, handle.affects, coordinate);
-}
-
-function findHandleIndexInStore(handle: Handle) {
-	let found = get(handles).findIndex(
-		(h) => h.affects === handle.affects && h.parent === handle.parent,
-	);
-	if (found === -1) return null;
-	return found;
+	// Limit curve movement to a bounding box
+	// if (handle.affects === "curve") {
+	// 	let to = parent.to;
+	// 	if (typeof parent.to === "string") to = Road.find(parent.to).to;
+	// 	const boundingBox = {
+	// 		minX: Math.min(parent.from.x, (to as Coordinate).x),
+	// 		minY: Math.min(parent.from.y, (to as Coordinate).y),
+	// 		maxX: Math.max(parent.from.x, (to as Coordinate).x),
+	// 		maxY: Math.max(parent.from.y, (to as Coordinate).y),
+	// 	};
+	// 	if (coordinate.x < boundingBox.minX) coordinate.x = boundingBox.minX;
+	// 	if (coordinate.y < boundingBox.minY) coordinate.y = boundingBox.minY;
+	// 	if (coordinate.x > boundingBox.maxX) coordinate.x = boundingBox.maxX;
+	// 	if (coordinate.y > boundingBox.maxY) coordinate.y = boundingBox.maxY;
+	// }
+	if (typeof parent.to !== "string")
+		editRoad(parent.id, handle.affects, coordinate);
+	else editRoad(parent.to, "from", coordinate);
 }
 
 mouseState.subscribe((pos) => {
 	if (pos.down) {
 		const activeHandle = getHandleCollisions(pos);
+
+		// if we are not dragging a handle anymore
 		if (!activeHandle) return draggingPoint.set(null);
+		// if the road is a ghost
+		if (get(roads)[getRoad(activeHandle.parent, true) as number].ghost) return;
 		handleMovement(activeHandle, pos);
-	}
-	// if the user *just* released the mouse button
-	else if (get(draggingPoint)) draggingPoint.set(null);
+	} else if (potentialRoadConnectionHandle && !pos.down && get(draggingPoint)) {
+		// if we are connecting with a road
+		connect(get(draggingPoint), potentialRoadConnectionHandle);
+		destroyMouseFollower();
+	} else draggingPoint.set(null);
 });
+
+function connect(beingDragged: Handle, target: Handle) {
+	const [beingDraggedRoad, targetRoad] = [beingDragged, target].map((handle) =>
+		Road.find(handle?.parent),
+	);
+	// If they are already connected, don't connect them
+	if (
+		typeof beingDraggedRoad.to === "string" ||
+		typeof targetRoad.to === "string"
+	)
+		return draggingPoint.set(null);
+	// If they are part of the same road, don't connect them
+	if (beingDragged.affects === "from") reverseRoad(beingDraggedRoad.id);
+	if (target.affects === "to") reverseRoad(targetRoad.id);
+	console.log(target.position, beingDragged.position);
+	editRoad(beingDraggedRoad.id, "to", targetRoad.id);
+	draggingPoint.set(null);
+}
 
 let lastPoint: Handle | null = null;
 draggingPoint.subscribe((newPoint) => {

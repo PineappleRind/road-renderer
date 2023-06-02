@@ -4,8 +4,8 @@ export function line(
 	ctx: CanvasRenderingContext2D,
 	from: Coordinate,
 	to: Coordinate,
-	color: string = "black",
-	thickness: number = 1,
+	color = "black",
+	thickness = 1,
 ) {
 	ctx.beginPath();
 	ctx.strokeStyle = color;
@@ -17,8 +17,8 @@ export function line(
 export function path(
 	ctx: CanvasRenderingContext2D,
 	path: Path2D,
-	color: string = "black",
-	thickness: number = 1,
+	color = "black",
+	thickness = 1,
 ) {
 	ctx.strokeStyle = color;
 	ctx.lineWidth = thickness;
@@ -27,8 +27,8 @@ export function path(
 export function point(
 	ctx: CanvasRenderingContext2D,
 	coordinate: Coordinate,
-	color: string = "black",
-	radius: number = 2,
+	color = "black",
+	radius = 2,
 ) {
 	ctx.fillStyle = color;
 	ctx.beginPath();
