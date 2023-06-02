@@ -1,6 +1,6 @@
 <script lang="ts">
   import Canvas from "./components/Canvas.svelte";
-  import DebugRoads from "./components/DebugRoads.svelte";
+  import DebugRoads from "./components/Debug.svelte";
 </script>
 
 <main>

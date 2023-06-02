@@ -1,0 +1,21 @@
+<script lang="ts">
+  import { roads as roadsstore } from "../road/store";
+
+  let roads: any;
+  roadsstore.subscribe((newroads) => {
+    roads = JSON.stringify(newroads, null, 2);
+  });
+</script>
+
+<code>{roads}</code>
+
+<style>
+  code {
+    position: fixed;
+    top: 0;
+    left: 0;
+    white-space: pre;
+    max-height: 100vh;
+    overflow-y: auto;
+  }
+</style>

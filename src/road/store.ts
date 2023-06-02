@@ -16,11 +16,15 @@ export function removeRoadFromStore(roadID: string) {
 		return items;
 	});
 }
-
 /**
  * @param loud Be fussy and throw an error if the road is not found
  */
 export function getRoad(roadID: string, loud?: boolean) {
+	let index = getRoadIndex(roadID, loud);
+	if (index === false) return false;
+	return get(roads)[index];
+}
+export function getRoadIndex(roadID: string, loud?: boolean) {
 	const roadIndex = get(roads).findIndex((r) => r.id === roadID);
 	if (roadIndex === -1) {
 		if (loud) throw new Error("Could not find road");
@@ -33,7 +37,7 @@ export function editRoad<T extends keyof Road>(
 	key: T,
 	value: Road[T],
 ) {
-	const roadIndex = getRoad(roadID, true);
+	const roadIndex = getRoadIndex(roadID, true);
 	if (roadIndex === false) return null;
 	roads.update((items) => {
 		const newRoad = items[roadIndex];
@@ -44,13 +48,13 @@ export function editRoad<T extends keyof Road>(
 }
 
 export function reverseRoad(id: string) {
-	const index = getRoad(id);
+	const index = getRoadIndex(id);
 	if (index === false) throw new Error("Could not reverse road");
 	const road = get(roads)[index];
 	console.log("Reversing road", id, road);
-	let to =
+	const to =
 		typeof road.to === "string"
-			? get(roads)[getRoad(road.to, true) as number].to
+			? get(roads)[getRoadIndex(road.to, true) as number].to
 			: road.to;
 	if (!to || typeof to === "string")
 		throw new Error("Could not resolve `to` handle");

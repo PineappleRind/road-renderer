@@ -7,6 +7,7 @@
     let ctx: CanvasRenderingContext2D = canvas.getContext("2d");
     if (!ctx) throw new Error("NO CTX??!?");
     scaleCanvasToWindow(canvas, ctx);
+    onresize = () => scaleCanvasToWindow(canvas, ctx);
     ctxStore.set(ctx);
 
     for (const event in events) {
