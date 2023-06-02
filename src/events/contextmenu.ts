@@ -1,19 +1,19 @@
 import { get } from "svelte/store";
 import Popover from "../components/Popover.svelte";
 import Road from "../road";
-import { mousePos } from "./store";
+import { mouseState } from "./store";
 
 export function contextmenu(e: MouseEvent) {
 	e.preventDefault();
 	const app = document.getElementById("app");
-	const popover = new Popover({
+	const menuPosition = get(mouseState);
+	new Popover({
 		props: {
-			coordinates: get(mousePos),
+			coordinates: menuPosition,
 			actions: [
 				{
 					name: "Create Road",
-					action: () =>
-						Road.create(get(mousePos)),
+					action: () => Road.create(menuPosition),
 				},
 			],
 		},

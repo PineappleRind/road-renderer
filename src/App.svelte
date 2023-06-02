@@ -5,7 +5,6 @@
 </script>
 
 <main>
-  <MouseFollower>aa</MouseFollower>
     <Canvas/>
 </main>
 

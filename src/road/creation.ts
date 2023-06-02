@@ -4,7 +4,8 @@ import {
 	destroyMouseFollower,
 } from "../components/MouseFollower";
 import type { Coordinate } from "../types/position";
-import { addRoad } from "./store";
+import { addRoadToStore, editRoad, removeRoadFromStore, roads } from "./store";
+import { mouseState } from "../events/store";
 
 export default async function creationWizard(
 	from: Coordinate | undefined,
@@ -13,12 +14,17 @@ export default async function creationWizard(
 	if (!from)
 		from = await getUserMouseInput("Choose a start point for your road");
 
-	if (!to) to = await getUserMouseInput("Choose an end point");
-	addRoad({
-		from,
-		to,
-		id: `road-${generateRoadID()}`,
-	});
+	if (!to) {
+		createRoad(from, get(mouseState), "road-GHOST");
+		const unsubscribe = mouseState.subscribe((pos) => {
+			editRoad("road-GHOST", "to", pos);
+		})
+		to = await getUserMouseInput("Choose an end point");
+		removeRoadFromStore("road-GHOST");
+		unsubscribe();
+	}
+	const roadID = `road-${generateRoadID()}`;
+	createRoad(from, to, roadID);
 
 	destroyMouseFollower();
 }
@@ -40,4 +46,12 @@ function generateRoadID() {
 	return Math.round(Math.random() * 2 ** 32)
 		.toString(16)
 		.padStart(8, "0");
+}
+
+function createRoad(from: Coordinate, to: Coordinate, roadID: string) {
+	addRoadToStore({
+		from,
+		to,
+		id: roadID,
+	});
 }

@@ -1,6 +1,7 @@
 import { get, writable } from "svelte/store";
 import Road from "./road";
 import { roads } from "./road/store";
+import { handles } from "./road/handle";
 
 export let ctx = writable<CanvasRenderingContext2D>();
 
@@ -11,5 +12,8 @@ export function render(ctx: CanvasRenderingContext2D) {
 }
 
 roads.subscribe(() => {
+	render(get(ctx));
+});
+handles.subscribe(() => {
 	render(get(ctx));
 });

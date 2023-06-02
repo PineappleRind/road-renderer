@@ -5,7 +5,7 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { destroyMouseFollower } from "./MouseFollower";
-  import { mousePos } from "../events/store";
+  import { mouseState } from "../events/store";
   import type { Coordinate } from "../types/position";
 
   if (mouseFollowerOpen) destroyMouseFollower();
@@ -27,7 +27,7 @@
     mouseFollowerOpen.style.setProperty("--y", `${y}px`);
   };
   onMount(() => {
-    mousePos.subscribe(onMouseMove);
+    mouseState.subscribe(onMouseMove);
   });
 </script>
 
