@@ -7,5 +7,5 @@ export const mouseState = writable<MouseState>({ x: 0, y: 0, down: null });
 document.addEventListener(
 	"mousemove",
 	(e) =>
-		void mouseState.set({ x: e.clientX, y: e.clientY, down: e.buttons === 1 }),
+		void mouseState.set({ x: e.offsetX, y: e.offsetY, down: e.buttons === 1 }),
 );

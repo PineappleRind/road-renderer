@@ -23,9 +23,9 @@ export function offsetPath(
 	let q2b: Coordinate;
 	let ca: Coordinate;
 	let cb: Coordinate;
-	const p1v = new Vector(p1.x, p1.y);
-	const cv = new Vector(c.x, c.y);
-	const p2v = new Vector(p2.x, p2.y);
+	const p1v = new Vector(p1.x, p1.y).round();
+	const cv = new Vector(c.x, c.y).round();
+	const p2v = new Vector(p2.x, p2.y).round();
 
 	const v1 = cv.subtract(p1v);
 	const v2 = p2v.subtract(cv);
@@ -148,7 +148,7 @@ function linesIntersect(
 		(l2p2x - l2p1x) * (l1p1y - l2p1y) - (l2p2y - l2p1y) * (l1p1x - l2p1x);
 	const nb =
 		(l1p2x - l1p1x) * (l1p1y - l2p1y) - (l1p2y - l1p1y) * (l1p1x - l2p1x);
-
+	// console.log(denominator, na, nb);
 	if (denominator === 0)
 		return { position: new Vector(0, 0), type: IntersectionType.Coincident };
 	const ua = na / denominator;

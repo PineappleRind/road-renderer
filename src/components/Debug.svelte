@@ -11,11 +11,10 @@
 
 <style>
   code {
-    position: fixed;
-    top: 0;
-    left: 0;
     white-space: pre;
     max-height: 100vh;
     overflow-y: auto;
+    user-select:text;
+    display: block;
   }
 </style>

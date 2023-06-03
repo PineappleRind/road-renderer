@@ -39,3 +39,10 @@
 </script>
 
 <canvas bind:this={canvas} />
+
+<style>
+  canvas {
+    position: fixed;
+    z-index: -1;
+  }
+</style>

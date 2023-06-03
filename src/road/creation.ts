@@ -8,6 +8,7 @@ import { addRoadToStore, editRoad, removeRoadFromStore, roads } from "./store";
 import { mouseState } from "../events/store";
 import { lerp } from "../utils/math";
 import { generateID } from "../utils/road";
+import { type InteractableType, registerInteractable } from "../events/interactables";
 
 export default async function creationWizard(
 	from: Coordinate | undefined,
@@ -29,6 +30,13 @@ export default async function creationWizard(
 		editRoad(roadID, "ghost", false);
 	} else createRoad(from, to, roadID);
 
+	registerInteractable<"road">({
+		bounds: null,
+		type: "road",
+		id: roadID,
+		state: "selected",
+	})
+	
 	destroyMouseFollower();
 }
 /**

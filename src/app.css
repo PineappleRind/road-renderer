@@ -1,12 +1,19 @@
 :root {
   --ease: cubic-bezier(.21, .1, .16, 1);
-  --background-l0: hsl(240, 60%, 99%);
-  --background-l1: hsl(240, 60%, 96%);
-  --background-l2: hsl(240, 60%, 93%);
-  --background-l3: hsl(240, 60%, 91%);
+  --background-l0: hsl(250, 60%, 99%);
+  --background-l1: hsl(250, 60%, 96%);
+  --background-l2: hsl(250, 60%, 93%);
+  --background-l3: hsl(250, 60%, 91%);
+  --background-accent: hsl(250, 80%, 60%);
+
   --radius: 13px;
-  --border: 1px solid #d0d0fe;
-  --shadow: 0 6px 14px hsla(240, 60%, 0%, 0.102);
+  --border: 1px solid hsl(250, 60%, 80%);
+  --shadow: 0 6px 14px hsla(250, 60%, 0%, 0.102);
+
+  --foreground-l0: hsl(250, 10%, 5%);
+  --foreground-l1: hsl(250, 10%, 30%);
+  --foreground-l2: hsl(250, 16%, 42%);
+
   font-family: Apfel Grotesk, Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
@@ -20,6 +27,8 @@
   -webkit-text-size-adjust: 100%;
 
   user-select: none;
+
+  color: var(--foreground-l1);
 }
 
 * {

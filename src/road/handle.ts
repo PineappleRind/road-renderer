@@ -37,7 +37,6 @@ function getHandleCollisions(mousePos: Coordinate): Handle | null {
 			...get(draggingPoint),
 			position: mousePos,
 		});
-		console.log(candidateHandles);
 		// if we're dragging a point on top of another point..
 		if (validConnection(candidateHandles)) {
 			createMouseFollower("Let go to connect with this road");
