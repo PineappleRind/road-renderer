@@ -20,7 +20,7 @@ export function removeRoadFromStore(roadID: string) {
  * @param loud Be fussy and throw an error if the road is not found
  */
 export function getRoad(roadID: string, loud?: boolean) {
-	let index = getRoadIndex(roadID, loud);
+	const index = getRoadIndex(roadID, loud);
 	if (index === false) return false;
 	return get(roads)[index];
 }

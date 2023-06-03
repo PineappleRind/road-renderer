@@ -19,10 +19,13 @@ export function path(
 	path: Path2D,
 	color = "black",
 	thickness = 1,
+	dashed = false,
 ) {
+	if (dashed) ctx.setLineDash([10, 15]);
 	ctx.strokeStyle = color;
 	ctx.lineWidth = thickness;
 	ctx.stroke(path);
+	ctx.setLineDash([10, 0]);
 }
 export function point(
 	ctx: CanvasRenderingContext2D,

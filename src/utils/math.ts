@@ -22,6 +22,7 @@ export function catmullRomFitting(data: Coordinate[], k = 1) {
 	const last = data.length - 2;
 
 	let path = `M${[data[1].x, data[1].y]}`;
+	const curves = [];
 
 	for (let i = 1; i < last; i++) {
 		const { x: x0, y: y0 } = i ? data[i - 1] : data[0];
@@ -35,14 +36,25 @@ export function catmullRomFitting(data: Coordinate[], k = 1) {
 		const cp2x = x2 - ((x3 - x1) / 6) * k;
 		const cp2y = y2 - ((y3 - y1) / 6) * k;
 
-		path += ` C${[
-			cp1x.toFixed(2),
-			cp1y.toFixed(2),
-			cp2x.toFixed(2),
-			cp2y.toFixed(2),
-			x2,
-			y2,
-		]}`;
+		curves.push(
+			[
+				[
+					cp1x, //x1
+					cp1y, //y1
+				],
+				[
+					cp2x, //x2
+					cp2y, //y2
+				],
+				[
+					x2, //x3
+					y2, //y3
+				],
+			].map((x) => x.flat().map(Math.round)),
+		);
 	}
-	return path;
+	curves.forEach((curve) => {
+		path += ` C${curve.flat()}`;
+	});
+	return { path, curves };
 }
