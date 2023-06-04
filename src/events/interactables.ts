@@ -68,13 +68,12 @@ export function editInteractable<T extends InteractableType, K extends keyof Int
 mouseState.subscribe((pos) => {
     if (!pos) return;
     for (const interactable of get(interactables)) {
-        console.log(interactable)
+        if (!interactable.bounds) continue;
         // If bounds is a Path2D...
-        if (interactable.bounds?.__proto__.arc) {
-            console.log("It's a Path2D!")
+        if (interactable.bounds.rect) {
             // If we're in it...
-            let isInPath = get(ctx).isPointInStroke(interactable.bounds as Path2D, pos.x, pos.y);
-            console.log(pos.x, pos.y, interactable.bounds.__proto__, get(ctx), isInPath)
+            let isInPath = get(ctx).isPointInPath(interactable.bounds as Path2D, pos.x, pos.y);
+            console.log(pos.x, pos.y, interactable.bounds, get(ctx), isInPath)
             if (isInPath) {
                 console.log("We're in it!")
                 let oldState = interactable.state;

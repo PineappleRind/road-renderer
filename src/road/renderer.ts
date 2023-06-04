@@ -1,11 +1,12 @@
 import { get } from "svelte/store";
 import { HandleState, type Handle, type Road } from "../types/road";
-import { path, point } from "../utils/canvas";
+import { bezier, point } from "../utils/canvas";
 import { handles } from "../road/handle";
 import { catmullRomFitting } from "../utils/math";
 import { offsetPath as getOffsetPath } from "./offsetCurve";
 import { getRoad } from "./store";
 import { editInteractable } from "../events/interactables";
+import type { Coordinate } from "../types/position";
 
 export function renderRoad(ctx: CanvasRenderingContext2D, road: Road) {
 	const to =
@@ -25,60 +26,41 @@ export function renderRoad(ctx: CanvasRenderingContext2D, road: Road) {
 		to,
 		30,
 	);
-	const offsetPathA = offsetPathToSVGPath(offsetCurveA);
-	const offsetPathB = offsetPathToSVGPath(offsetCurveB);
 
 	const { a: roadLinesCurve } = getOffsetPath(road.from, road.curve, to, 0);
-	const roadLinesPath = offsetPathToSVGPath(roadLinesCurve);
 
-	const fillPath = combinePaths(offsetPathA, offsetPathB);
+	const fillPath = combinePaths(offsetCurveA, offsetCurveB);
 
-	path(ctx, new Path2D(roadLinesPath), {
+	bezier(ctx, roadLinesCurve, {
 		color: road.ghost ? "hsla(0,0%,0%,0.2)" : "black",
 		dashed: true,
 	});
-	path(ctx, new Path2D(offsetPathA), {
+	bezier(ctx, offsetCurveA, {
 		color: road.ghost ? "hsla(0,0%,0%,0.2)" : "black",
 	});
-	path(ctx, new Path2D(offsetPathB), {
+	bezier(ctx, offsetCurveB, {
 		color: road.ghost ? "hsla(0,0%,0%,0.2)" : "black",
 	});
-	let fillPath2D =  new Path2D(fillPath);
-	path(ctx, fillPath2D, {
+	let fillPath2D = bezier(ctx, fillPath, {
 		color: "red",
-		action: "stroke",
+		action: "fill",
 	});
 	if (!road.ghost) {
 		try {
 			editInteractable<"road", "bounds">(road.id, "bounds", fillPath2D);
-		} catch(err) {
+		} catch (err) {
 
 		}
 	}
 }
 
-function offsetPathToSVGPath(offsetPath: number[][][]) {
-	return `M${offsetPath[0][0].flat().map(Math.floor)} ${offsetPath.map(
-		(n) => `C${n.map((m) => m.map(Math.floor)).join(" ")}`,
-	)}`;
-}
-
-function combinePaths(path1: string, path2: string) {
-	// A bunch of string shenanigans, manipulates it to shreds!!!!!!!!!!!!!!!!!!!
-	// not exactly the most dynamic but hey it works with what offsetPath outputs
-
-	// assumes path1 and path2 are `M0,0 C0,0 0,0 0,0`
-	let path1Split = path1.split(" ");
-	let path2Split = path2.split(" ");
-
-	const reversedPath2CurvePoints = path2.split("C")[1].split(" ");
-	reversedPath2CurvePoints.reverse();
-	// console.log(reversedPath2CurvePoints, path2);
-	const joinedPaths = `${path2Split[0]} L${path1Split[0].slice(
-		1,
-	)} ${path1.slice(1)} L${path2Split.at(-1)} C${reversedPath2CurvePoints}`;
-	// console.log(joinedPaths);
-	return joinedPaths;
+function combinePaths(path1: Coordinate[][], path2: Coordinate[][]) {
+	let flatPath2 = path2.flat();
+	flatPath2.reverse();
+	let flatPath1 = path1.flat();
+	let joined = [flatPath1, flatPath1.at(-1), flatPath2[0], flatPath2, flatPath1[0]];
+	console.log(joined)
+	return joined;
 }
 
 export function renderHandle(ctx: CanvasRenderingContext2D, handle: Handle) {

@@ -14,7 +14,7 @@ export function offsetPath(
 	c: Coordinate,
 	p2: Coordinate,
 	thickness: number,
-): { a: number[][][]; b: number[][][] } {
+): { a: Coordinate[][]; b: Coordinate[][] } {
 	let qa: Vector;
 	let qb: Vector;
 	let q1a: Coordinate;
@@ -80,16 +80,16 @@ export function offsetPath(
 	return {
 		a: shouldSplit
 			? [
-					[p1a.components, [q1a.x, q1a.y], qa.components],
-					[p2a.components, [q2a.x, q2a.y], p2a.components],
-			  ]
-			: [[p1a.components, [ca.x, ca.y], p2a.components]],
+				[p1a.asCoordinate(), q1a, qa.asCoordinate()],
+				[p2a.asCoordinate(), q2a, p2a.asCoordinate()],
+			]
+			: [[p1a.asCoordinate(), ca, p2a.asCoordinate()]],
 		b: shouldSplit
 			? [
-					[p1b.components, [q1b.x, q1b.y], qb.components],
-					[p2b.components, [q2b.x, q2b.y], p2b.components],
-			  ]
-			: [[p1b.components, [cb.x, cb.y], p2b.components]],
+				[p1b.asCoordinate(), q1b, qb.asCoordinate()],
+				[p2b.asCoordinate(), q2b, p2b.asCoordinate()],
+			]
+			: [[p1b.asCoordinate(), cb, p2b.asCoordinate()]],
 	};
 }
 
