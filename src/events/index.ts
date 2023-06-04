@@ -1,2 +1,5 @@
 import { contextmenu } from "./contextmenu";
-export default { contextmenu };
+import { mousedown } from "./mousedown";
+import { mouseup } from "./mouseup";
+import { mousemove } from "./mousemove";
+export default { contextmenu, mousedown, mouseup, mousemove };

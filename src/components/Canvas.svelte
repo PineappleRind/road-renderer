@@ -14,7 +14,7 @@
     ctxStore.set(ctx);
 
     for (const event in events) {
-      canvas[`on${event}`] = events[event];
+      document[`on${event}`] = events[event];
     }
   });
 

@@ -3,7 +3,6 @@ import { mouseState } from "../events/store";
 import { editRoad, getRoad, getRoadIndex, reverseRoad, roads } from "./store";
 import type { Coordinate } from "../types/position";
 import { type Handle, type Road as RoadType } from "../types/road";
-import { distance } from "../utils/math";
 import {
 	createMouseFollower,
 	destroyMouseFollower,
@@ -11,6 +10,9 @@ import {
 import Road from ".";
 
 export const handles = derived(roads, (roads) => getAllHandlesFromRoads(roads));
+
+const distance = (p1: Coordinate, p2: Coordinate) =>
+	Math.hypot(p2.x - p1.x, p2.y - p1.y);
 
 const RADIUS = 10;
 const draggingPoint = writable<Handle | null>(null);

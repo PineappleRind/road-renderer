@@ -2,6 +2,7 @@ import { get, writable } from "svelte/store";
 import type { BoundingBox } from "../types/position";
 import { mouseState } from "./store";
 import { ctx } from "../render";
+import { debug } from "../utils/debug";
 
 export type InteractableType = "road" | "curveHandle" | "handle";
 export type InteractableState = "idle" | "hover" | "selected";
@@ -78,30 +79,36 @@ mouseState.subscribe((pos) => {
 	if (!pos) return;
 	for (const interactable of get(interactables)) {
 		if (!interactable.bounds) continue;
-		// If bounds is a Path2D...
-		if ((interactable.bounds as Path2D).rect) {
-			const isInPath = get(ctx).isPointInPath(
-				interactable.bounds as Path2D,
-				// Multiply by devicePixelRatio because the way we scale the
-				// canvas in Canvas.svelte affects what ctx.isPointInPath does
-				pos.x * devicePixelRatio,
-				pos.y * devicePixelRatio,
-			);
-			if (isInPath) {
-				editInteractable(interactable.id, "state", "hover");
-				interactableState.set({
-					from: interactable.state,
-					to: "hover",
-					id: interactable.id,
-				});
-			} else {
-				editInteractable(interactable.id, "state", "idle");
-				interactableState.set({
-					from: interactable.state,
-					to: "idle",
-					id: interactable.id,
-				});
-			}
-		}
+
+		const isInPath = get(ctx).isPointInPath(
+			interactable.bounds as Path2D,
+			// Multiply by devicePixelRatio because the way we scale the
+			// canvas in Canvas.svelte affects what ctx.isPointInPath does
+			pos.x * devicePixelRatio,
+			pos.y * devicePixelRatio,
+		);
+
+		let newState: InteractableState;
+		let mouseUp = !pos.down && pos.previous.down;
+		// Click inside
+		if (isInPath && mouseUp || (!mouseUp && interactable.state === "selected")) newState = "selected";
+		// Click outside
+		else if (!isInPath && mouseUp) newState = "idle";
+		// Hover inside
+		else if (isInPath && !pos.down && newState !== "selected") newState = "hover";
+		// Hover outside
+		else if (!isInPath && !pos.down && newState !== "selected") newState = "idle";
+		debug(newState, mouseUp)
+
+		// if this isn't news, don't bother telling 
+		// everyone again. they don't want to hear it
+		if (newState === interactable.state) continue;
+
+		editInteractable(interactable.id, "state", newState);
+		interactableState.set({
+			from: interactable.state,
+			to: newState,
+			id: interactable.id,
+		});
 	}
 });

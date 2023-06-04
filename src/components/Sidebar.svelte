@@ -4,7 +4,7 @@
   let id;
   interactableState.subscribe((newState) => {
     if (!newState) return (id = "Nothing selected");
-    id = newState.id;
+    if (newState.to === "selected") id = newState.id;
   });
 
   let tabActive = "inspector";
