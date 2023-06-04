@@ -4,11 +4,11 @@ import {
 	destroyMouseFollower,
 } from "../components/MouseFollower";
 import type { Coordinate } from "../types/position";
-import { addRoadToStore, editRoad, removeRoadFromStore, roads } from "./store";
+import { addRoadToStore, editRoad } from "./store";
 import { mouseState } from "../events/store";
 import { lerp } from "../utils/math";
 import { generateID } from "../utils/road";
-import { type InteractableType, registerInteractable } from "../events/interactables";
+import { registerInteractable } from "../events/interactables";
 
 export default async function creationWizard(
 	from: Coordinate | undefined,
@@ -35,8 +35,8 @@ export default async function creationWizard(
 		type: "road",
 		id: roadID,
 		state: "selected",
-	})
-	
+	});
+
 	destroyMouseFollower();
 }
 /**

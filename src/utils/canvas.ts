@@ -30,17 +30,24 @@ export function bezier(
 	ctx.fillStyle = color;
 	ctx.lineWidth = thickness;
 	const path2d = new Path2D();
-	ctx.beginPath()
+	ctx.beginPath();
 	for (const curve of bezier) {
 		if (curve instanceof Array) {
 			path2d.moveTo(curve[0].x, curve[0].y);
-			path2d.bezierCurveTo(curve[0].x, curve[0].y, curve[1].x, curve[1].y, curve[2].x, curve[2].y);
+			path2d.bezierCurveTo(
+				curve[0].x,
+				curve[0].y,
+				curve[1].x,
+				curve[1].y,
+				curve[2].x,
+				curve[2].y,
+			);
 		} else path2d.lineTo(curve.x, curve.y);
 	}
 	ctx[action](path2d);
-	ctx.closePath()
-	ctx.setLineDash([10, 0]);
-	return path2d
+	ctx.closePath();
+	if (dashed) ctx.setLineDash([10, 0]);
+	return path2d;
 }
 
 export function point(

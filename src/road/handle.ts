@@ -1,8 +1,8 @@
-import { derived, get, writable, type Writable } from "svelte/store";
+import { derived, get, writable } from "svelte/store";
 import { mouseState } from "../events/store";
 import { editRoad, getRoad, getRoadIndex, reverseRoad, roads } from "./store";
 import type { Coordinate } from "../types/position";
-import { HandleState, type Handle, type Road as RoadType } from "../types/road";
+import { type Handle, type Road as RoadType } from "../types/road";
 import { distance } from "../utils/math";
 import {
 	createMouseFollower,

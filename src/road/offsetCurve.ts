@@ -80,15 +80,15 @@ export function offsetPath(
 	return {
 		a: shouldSplit
 			? [
-				[p1a.asCoordinate(), q1a, qa.asCoordinate()],
-				[p2a.asCoordinate(), q2a, p2a.asCoordinate()],
-			]
+					[p1a.asCoordinate(), q1a, qa.asCoordinate()],
+					[p2a.asCoordinate(), q2a, p2a.asCoordinate()],
+			  ]
 			: [[p1a.asCoordinate(), ca, p2a.asCoordinate()]],
 		b: shouldSplit
 			? [
-				[p1b.asCoordinate(), q1b, qb.asCoordinate()],
-				[p2b.asCoordinate(), q2b, p2b.asCoordinate()],
-			]
+					[p1b.asCoordinate(), q1b, qb.asCoordinate()],
+					[p2b.asCoordinate(), q2b, p2b.asCoordinate()],
+			  ]
 			: [[p1b.asCoordinate(), cb, p2b.asCoordinate()]],
 	};
 }
