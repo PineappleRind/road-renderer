@@ -14,7 +14,7 @@ export function offsetPath(
 	c: Coordinate,
 	p2: Coordinate,
 	thickness: number,
-): { a: number[][][]; b: number[][][] } {
+): { a: Coordinate[][]; b: Coordinate[][] } {
 	let qa: Vector;
 	let qb: Vector;
 	let q1a: Coordinate;
@@ -23,9 +23,9 @@ export function offsetPath(
 	let q2b: Coordinate;
 	let ca: Coordinate;
 	let cb: Coordinate;
-	const p1v = new Vector(p1.x, p1.y);
-	const cv = new Vector(c.x, c.y);
-	const p2v = new Vector(p2.x, p2.y);
+	const p1v = new Vector(p1.x, p1.y).round();
+	const cv = new Vector(c.x, c.y).round();
+	const p2v = new Vector(p2.x, p2.y).round();
 
 	const v1 = cv.subtract(p1v);
 	const v2 = p2v.subtract(cv);
@@ -80,16 +80,16 @@ export function offsetPath(
 	return {
 		a: shouldSplit
 			? [
-					[p1a.components, [q1a.x, q1a.y], qa.components],
-					[p2a.components, [q2a.x, q2a.y], p2a.components],
+					[p1a.asCoordinate(), q1a, qa.asCoordinate()],
+					[p2a.asCoordinate(), q2a, p2a.asCoordinate()],
 			  ]
-			: [[p1a.components, [ca.x, ca.y], p2a.components]],
+			: [[p1a.asCoordinate(), ca, p2a.asCoordinate()]],
 		b: shouldSplit
 			? [
-					[p1b.components, [q1b.x, q1b.y], qb.components],
-					[p2b.components, [q2b.x, q2b.y], p2b.components],
+					[p1b.asCoordinate(), q1b, qb.asCoordinate()],
+					[p2b.asCoordinate(), q2b, p2b.asCoordinate()],
 			  ]
-			: [[p1b.components, [cb.x, cb.y], p2b.components]],
+			: [[p1b.asCoordinate(), cb, p2b.asCoordinate()]],
 	};
 }
 
@@ -148,7 +148,7 @@ function linesIntersect(
 		(l2p2x - l2p1x) * (l1p1y - l2p1y) - (l2p2y - l2p1y) * (l1p1x - l2p1x);
 	const nb =
 		(l1p2x - l1p1x) * (l1p1y - l2p1y) - (l1p2y - l1p1y) * (l1p1x - l2p1x);
-
+	// console.log(denominator, na, nb);
 	if (denominator === 0)
 		return { position: new Vector(0, 0), type: IntersectionType.Coincident };
 	const ua = na / denominator;

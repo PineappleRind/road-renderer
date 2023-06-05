@@ -51,7 +51,6 @@ export function reverseRoad(id: string) {
 	const index = getRoadIndex(id);
 	if (index === false) throw new Error("Could not reverse road");
 	const road = get(roads)[index];
-	console.log("Reversing road", id, road);
 	const to =
 		typeof road.to === "string"
 			? get(roads)[getRoadIndex(road.to, true) as number].to

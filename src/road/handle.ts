@@ -1,9 +1,8 @@
-import { derived, get, writable, type Writable } from "svelte/store";
+import { derived, get, writable } from "svelte/store";
 import { mouseState } from "../events/store";
 import { editRoad, getRoad, getRoadIndex, reverseRoad, roads } from "./store";
 import type { Coordinate } from "../types/position";
-import { HandleState, type Handle, type Road as RoadType } from "../types/road";
-import { distance } from "../utils/math";
+import { type Handle, type Road as RoadType } from "../types/road";
 import {
 	createMouseFollower,
 	destroyMouseFollower,
@@ -11,6 +10,9 @@ import {
 import Road from ".";
 
 export const handles = derived(roads, (roads) => getAllHandlesFromRoads(roads));
+
+const distance = (p1: Coordinate, p2: Coordinate) =>
+	Math.hypot(p2.x - p1.x, p2.y - p1.y);
 
 const RADIUS = 10;
 const draggingPoint = writable<Handle | null>(null);
@@ -37,7 +39,6 @@ function getHandleCollisions(mousePos: Coordinate): Handle | null {
 			...get(draggingPoint),
 			position: mousePos,
 		});
-		console.log(candidateHandles);
 		// if we're dragging a point on top of another point..
 		if (validConnection(candidateHandles)) {
 			createMouseFollower("Let go to connect with this road");

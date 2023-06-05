@@ -1,17 +1,20 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import events from "../events/index";
-  import { ctx as ctxStore } from "../render";
+  import { ctx as ctxStore, render as render$ } from "../render";
   let canvas: HTMLCanvasElement;
   onMount(() => {
     let ctx: CanvasRenderingContext2D = canvas.getContext("2d");
     if (!ctx) throw new Error("NO CTX??!?");
     scaleCanvasToWindow(canvas, ctx);
-    onresize = () => scaleCanvasToWindow(canvas, ctx);
+    onresize = () => {
+      scaleCanvasToWindow(canvas, ctx);
+      render$(ctx);
+    }
     ctxStore.set(ctx);
 
     for (const event in events) {
-      canvas[`on${event}`] = events[event];
+      document[`on${event}`] = events[event];
     }
   });
 
@@ -39,3 +42,10 @@
 </script>
 
 <canvas bind:this={canvas} />
+
+<style>
+  canvas {
+    position: fixed;
+    z-index: -1;
+  }
+</style>
