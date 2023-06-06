@@ -2,11 +2,11 @@
 // for some reason I can't import
 // a component from its own module
 
-import { createSlots } from "../utils/slots";
 import {
 	mouseFollowerOpen,
 	default as MouseFollower,
-} from "./MouseFollower.svelte";
+} from "@/components/MouseFollower.svelte";
+import { createSlots } from "@/utils/slots";
 
 export function createMouseFollower(text) {
 	return new MouseFollower({

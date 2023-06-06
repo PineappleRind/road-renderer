@@ -1,10 +1,12 @@
-<script>
-  import { interactableState } from "../events/interactables";
-  import Debug from "./Debug.svelte";
+<script lang="ts">
+  import { currentSelection } from "@/events/interactables";
+  import Debug from "@/components/Debug.svelte";
+  import road from "@/road";
+
   let id;
-  interactableState.subscribe((newState) => {
-    if (!newState) return (id = "Nothing selected");
-    if (newState.to === "selected") id = newState.id;
+  currentSelection.subscribe((newID: string) => {
+    if (!newID) id = "";
+    if (newID) id = newID;
   });
 
   let tabActive = "inspector";
@@ -23,7 +25,12 @@
       </div>
     {/each}
   </div>
-  <div class="tab" class:tabActive={tabActive === "inspector"}>{id}</div>
+  <div class="tab" class:tabActive={tabActive === "inspector"}>
+    {#if id}
+      <p>{id}</p>
+      <button on:click={() => road.delete(id)}>Delete road</button>
+    {/if}
+  </div>
   <div class="tab" class:tabActive={tabActive === "debug"}><Debug /></div>
 </aside>
 
@@ -79,7 +86,7 @@
     color: var(--foreground-l1);
   }
   .tabTrigger::after {
-    content: '';
+    content: "";
     position: absolute;
     bottom: 0;
     left: 0;

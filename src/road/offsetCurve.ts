@@ -1,5 +1,5 @@
-import type { Coordinate } from "../types/position";
-import { Vector } from "../utils/vector";
+import type { Coordinate } from "@/types/position";
+import { Vector } from "@/utils/vector";
 
 /**
  *
@@ -142,15 +142,15 @@ function linesIntersect(
 	const { x: l1p2x, y: l1p2y } = line1.p2.round().asCoordinate();
 	const { x: l2p1x, y: l2p1y } = line2.p1.round().asCoordinate();
 	const { x: l2p2x, y: l2p2y } = line2.p2.round().asCoordinate();
-	const denominator =
+	let denominator =
 		(l2p2y - l2p1y) * (l1p2x - l1p1x) - (l2p2x - l2p1x) * (l1p2y - l1p1y);
 	const na =
 		(l2p2x - l2p1x) * (l1p1y - l2p1y) - (l2p2y - l2p1y) * (l1p1x - l2p1x);
 	const nb =
 		(l1p2x - l1p1x) * (l1p1y - l2p1y) - (l1p2y - l1p1y) * (l1p1x - l2p1x);
-	// console.log(denominator, na, nb);
-	if (denominator === 0)
-		return { position: new Vector(0, 0), type: IntersectionType.Coincident };
+	// console.log(denominator, na, nb, line1, line2);
+	if (denominator === 0) denominator++;
+	// return { position: new Vector(0, 0), type: IntersectionType.Coincident };
 	const ua = na / denominator;
 	const ub = nb / denominator;
 	if (ua >= 0.0 && ua <= 1.0 && ub >= 0.0 && ub <= 1.0) {

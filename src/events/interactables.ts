@@ -1,8 +1,7 @@
-import { get, writable } from "svelte/store";
-import type { BoundingBox } from "../types/position";
-import { mouseState } from "./store";
-import { ctx } from "../render";
-import { debug } from "../utils/debug";
+import { derived, get, writable } from "svelte/store";
+import { mouseState } from "@/events/store";
+import { ctx } from "@/render";
+import type { BoundingBox, Coordinate } from "@/types/position";
 
 export type InteractableType = "road" | "curveHandle" | "handle";
 export type InteractableState = "idle" | "hover" | "selected";
@@ -23,6 +22,17 @@ type InteractEvent = {
 const interactables = writable<Interactable<InteractableType>[]>([]);
 export const interactableState = writable<InteractEvent>(null);
 
+export const currentSelection = derived(interactableState, (event) => {
+	if (!event) return null;
+	if (event.id === get(currentSelection) && event.to === "selected")
+		return get(currentSelection);
+	if (event.id !== get(currentSelection) && event.to === "selected")
+		return event.id;
+	if (event.id === get(currentSelection) && event.to !== "selected")
+		return null;
+	if (event.id !== get(currentSelection) && event.to !== "selected")
+		return get(currentSelection);
+});
 /**
  * Registers an interactable
  * @param object The interactable to register.
@@ -51,15 +61,15 @@ export function registerInteractable<T extends InteractableType>({
 	return index;
 }
 
-function getInteractableIndex(id: string, loud?: boolean) {
+export function getInteractableIndex(id: string, loud?: boolean) {
 	const found = get(interactables).findIndex((i) => i.id === id);
 	if (found === -1 && loud) throw new Error("interactable not found");
 	else if (found === -1) return null;
 	else return found;
 }
 
-export function getInteractable(id: string) {
-	return get(interactables)[getInteractableIndex(id, true)];
+export function getInteractable(id: string, loud?: boolean) {
+	return get(interactables)[getInteractableIndex(id, loud)];
 }
 
 export function editInteractable<
@@ -75,32 +85,44 @@ export function editInteractable<
 	});
 }
 
+export function deleteInteractable(index: number) {
+	interactables.update((interactables) => {
+		interactables.splice(index, 1);
+		return interactables;
+	});
+}
+
 mouseState.subscribe((pos) => {
 	if (!pos) return;
 	for (const interactable of get(interactables)) {
 		if (!interactable.bounds) continue;
 
-		const isInPath = get(ctx).isPointInPath(
-			interactable.bounds as Path2D,
-			// Multiply by devicePixelRatio because the way we scale the
-			// canvas in Canvas.svelte affects what ctx.isPointInPath does
-			pos.x * devicePixelRatio,
-			pos.y * devicePixelRatio,
-		);
+		const isInPath = ({ x, y }: Coordinate) =>
+			get(ctx).isPointInPath(
+				interactable.bounds as Path2D,
+				// Multiply by devicePixelRatio because the way we scale the
+				// canvas in Canvas.svelte affects what ctx.isPointInPath does
+				x * devicePixelRatio,
+				y * devicePixelRatio,
+			);
 
 		let newState: InteractableState;
 		let mouseUp = !pos.down && pos.previous.down;
+		let isNowInPath = isInPath(pos);
+		let clickInPath = mouseUp && isInPath(pos.previous);
 		// Click inside
-		if (isInPath && mouseUp || (!mouseUp && interactable.state === "selected")) newState = "selected";
+		if (clickInPath || (!mouseUp && interactable.state === "selected"))
+			newState = "selected";
 		// Click outside
-		else if (!isInPath && mouseUp) newState = "idle";
+		else if (!isNowInPath && mouseUp) newState = "idle";
 		// Hover inside
-		else if (isInPath && !pos.down && newState !== "selected") newState = "hover";
+		else if (isNowInPath && !pos.down && newState !== "selected")
+			newState = "hover";
 		// Hover outside
-		else if (!isInPath && !pos.down && newState !== "selected") newState = "idle";
-		debug(newState, mouseUp)
+		else if (!isNowInPath && !pos.down && newState !== "selected")
+			newState = "idle";
 
-		// if this isn't news, don't bother telling 
+		// if this isn't news, don't bother telling
 		// everyone again. they don't want to hear it
 		if (newState === interactable.state) continue;
 

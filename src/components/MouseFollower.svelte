@@ -4,9 +4,9 @@
 
 <script lang="ts">
   import { onMount } from "svelte";
-  import { destroyMouseFollower } from "./MouseFollower";
-  import { mouseState } from "../events/store";
-  import type { Coordinate } from "../types/position";
+  import { destroyMouseFollower } from "@/components/MouseFollower";
+  import { mouseState } from "@/events/store";
+  import type { Coordinate } from "@/types/position";
 
   const MARGIN = 14;
 
@@ -42,5 +42,10 @@
     position: fixed;
     left: var(--x);
     top: var(--y);
+    animation: mouse-follower-in 0.2s;
+    text-shadow: 0px 0px 10px var(--background-l0), 0px 0px 10px var(--background-l0);
+  }
+  @keyframes mouse-follower-in {
+    from { opacity: 0; scale: 0.99 }
   }
 </style>

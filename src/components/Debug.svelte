@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { roads as roadsstore } from "../road/store";
+  import { roads as roadsstore } from "@/road/store";
 
   let roads: any;
   roadsstore.subscribe((newroads) => {

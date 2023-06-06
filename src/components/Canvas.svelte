@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import events from "../events/index";
-  import { ctx as ctxStore, render as render$ } from "../render";
+  import events from "@/events/index";
+  import { ctx as ctxStore, render as render$ } from "@/render";
   let canvas: HTMLCanvasElement;
   onMount(() => {
     let ctx: CanvasRenderingContext2D = canvas.getContext("2d");
@@ -9,12 +9,15 @@
     scaleCanvasToWindow(canvas, ctx);
     onresize = () => {
       scaleCanvasToWindow(canvas, ctx);
-      render$(ctx);
+      render$();
     }
     ctxStore.set(ctx);
 
     for (const event in events) {
-      document[`on${event}`] = events[event];
+      document[`on${event}`] = (e) => {
+        if (e.target instanceof HTMLElement && e.target.tagName.toLowerCase() !== "canvas") return;
+        events[event](e);
+      }
     }
   });
 

@@ -2,12 +2,14 @@ import { get } from "svelte/store";
 import {
 	createMouseFollower,
 	destroyMouseFollower,
-} from "../components/MouseFollower";
-import type { Coordinate } from "../types/position";
-import { addRoadToStore, editRoad } from "./store";
-import { mouseState } from "../events/store";
-import { generateID } from "../utils/road";
-import { registerInteractable } from "../events/interactables";
+} from "@/components/MouseFollower";
+import { mouseState } from "@/events/store";
+import { registerInteractable } from "@/events/interactables";
+import { addRoadToStore, editRoad } from "@/road/store";
+import type { Coordinate } from "@/types/position";
+import { generateID } from "@/utils/road";
+import { distance } from "@/utils/distance";
+import { ROAD_MIN_LENGTH } from "@/config/road";
 
 export default async function creationWizard(
 	from: Coordinate | undefined,
@@ -18,16 +20,31 @@ export default async function creationWizard(
 		from = await getUserMouseInput("Choose a start point for your road");
 
 	if (!to) {
+		// Create a ghost road that will be edited when mouse position changes
 		createRoad(from, get(mouseState), roadID, true);
-		const unsubscribe = mouseState.subscribe(({ x, y }) => {
-			editRoad(roadID, "to", { x, y });
-			editRoad(roadID, "curve", halfway(from, { x, y }));
-		});
-		to = await getUserMouseInput("Choose an end point");
 
-		unsubscribe();
+		async function getRoadEndpoint(message?: string) {
+			// Start editing the road position on mouse move
+			const unsubscribe = mouseState.subscribe(({ x, y }) => {
+				editRoad(roadID, "to", { x, y });
+				editRoad(roadID, "curve", halfway(from, { x, y }));
+			});
+			to = await getUserMouseInput(message || "Choose an end point");
+			// Stop editing the road position on mouse move
+			unsubscribe();
+			if (distance(from, to) < ROAD_MIN_LENGTH)
+				return await getRoadEndpoint(
+					"Road too short — choose a different end point",
+				);
+		}
+		await getRoadEndpoint();
+
+		// Set the road in stone
 		editRoad(roadID, "ghost", false);
-	} else createRoad(from, to, roadID);
+	} else {
+		// If an endpoint is already specified, create the road then and there
+		createRoad(from, to, roadID);
+	}
 
 	registerInteractable<"road">({
 		bounds: null,
@@ -35,20 +52,19 @@ export default async function creationWizard(
 		id: roadID,
 		state: "selected",
 	});
-
-	destroyMouseFollower();
 }
 /**
  * Prompts the user to click somewhere and gets the position
  */
 async function getUserMouseInput(prompt: string): Promise<Coordinate> {
 	createMouseFollower(prompt);
-	let resolveCache;
+	let resolveCache: (value: MouseEvent | PromiseLike<MouseEvent>) => void;
 	const e: MouseEvent = await new Promise((resolve) => {
 		resolveCache = resolve;
 		document.addEventListener("click", resolve);
 	});
 	document.removeEventListener("click", resolveCache);
+	destroyMouseFollower();
 	return { x: e.clientX, y: e.clientY };
 }
 

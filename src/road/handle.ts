@@ -1,13 +1,20 @@
 import { derived, get, writable } from "svelte/store";
-import { mouseState } from "../events/store";
-import { editRoad, getRoad, getRoadIndex, reverseRoad, roads } from "./store";
-import type { Coordinate } from "../types/position";
-import { type Handle, type Road as RoadType } from "../types/road";
 import {
 	createMouseFollower,
 	destroyMouseFollower,
-} from "../components/MouseFollower";
-import Road from ".";
+} from "@/components/MouseFollower";
+import { HANDLE_CURVE_RADIUS, HANDLE_POSITION_RADIUS } from "@/config/handle";
+import { mouseState } from "@/events/store";
+import {
+	editRoad,
+	getRoad,
+	getRoadIndex,
+	reverseRoad,
+	roads,
+} from "@/road/store";
+import type { Coordinate } from "@/types/position";
+import { type Handle, type Road as RoadType } from "@/types/road";
+import { getInteractable } from "@/events/interactables";
 
 export const handles = derived(roads, (roads) => getAllHandlesFromRoads(roads));
 
@@ -25,6 +32,12 @@ function getHandleCollisions(mousePos: Coordinate): Handle | null {
 	for (const handle of get(handles)) {
 		// if this handle doesn't intersect with the mouse, get rid of it
 		if (!mouseIntersectsWith(mousePos, handle.position, RADIUS)) continue;
+		// if this handle's parent interactable isn't selected, ignore it
+		if (
+			getInteractable(handle.parent) &&
+			getInteractable(handle.parent).state !== "selected"
+		)
+			continue;
 		// now put it as a candidate
 		candidateHandles.push(handle);
 	}
@@ -125,6 +138,30 @@ function handleMovement(handle: Handle, coordinate: Coordinate) {
 	else editRoad(parent.to, "from", coordinate);
 }
 
+function connect(beingDragged: Handle, target: Handle) {
+	const [beingDraggedRoad, targetRoad] = [beingDragged, target].map(
+		(handle) => getRoad(handle?.parent, true) as RoadType,
+	);
+	if (beingDragged.affects === "from") reverseRoad(beingDraggedRoad.id);
+	if (target.affects === "to") reverseRoad(targetRoad.id);
+	editRoad(beingDraggedRoad.id, "to", targetRoad.id);
+	draggingPoint.set(null);
+}
+
+export function addHandlePathsToPath(roadID: string, path: Path2D) {
+	const roadHandles = get(handles).filter((handle) => handle.parent === roadID);
+	for (const handle of roadHandles) {
+		path.arc(
+			handle.position.x,
+			handle.position.y,
+			handle.affects === "curve" ? HANDLE_CURVE_RADIUS : HANDLE_POSITION_RADIUS,
+			0,
+			2 * Math.PI,
+		);
+	}
+	return path;
+}
+
 mouseState.subscribe((pos) => {
 	if (potentialRoadConnectionHandle && !pos.down && get(draggingPoint)) {
 		// if we are connecting with a road
@@ -144,13 +181,3 @@ mouseState.subscribe((pos) => {
 		handleMovement(activeHandle, pos);
 	}
 });
-
-function connect(beingDragged: Handle, target: Handle) {
-	const [beingDraggedRoad, targetRoad] = [beingDragged, target].map((handle) =>
-		Road.find(handle?.parent),
-	);
-	if (beingDragged.affects === "from") reverseRoad(beingDraggedRoad.id);
-	if (target.affects === "to") reverseRoad(targetRoad.id);
-	editRoad(beingDraggedRoad.id, "to", targetRoad.id);
-	draggingPoint.set(null);
-}

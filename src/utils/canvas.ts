@@ -1,5 +1,5 @@
-import type { LineOptions, PathOptions, PointOptions } from "../types/canvas";
-import type { Coordinate } from "../types/position";
+import type { LineOptions, PathOptions, PointOptions } from "@/types/canvas";
+import type { Coordinate } from "@/types/position";
 
 export function line(
 	ctx: CanvasRenderingContext2D,

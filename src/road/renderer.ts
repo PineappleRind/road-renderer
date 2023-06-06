@@ -1,15 +1,25 @@
 import { get } from "svelte/store";
-import { editInteractable, getInteractable, type InteractableState } from "../events/interactables";
-import { offsetPath as getOffsetPath } from "./offsetCurve";
-import { handles } from "../road/handle";
-import { getRoad } from "./store";
-import { type Handle, type Road } from "../types/road";
-import type { Coordinate } from "../types/position";
-import { bezier, point } from "../utils/canvas";
-import { debug } from "../utils/debug";
+import {
+	HANDLE_CURVE_COLOR,
+	HANDLE_POSITION_COLOR,
+	HANDLE_POSITION_RADIUS,
+	HANDLE_CURVE_RADIUS,
+} from "@/config/handle";
+import { ROAD_FILL, ROAD_FILL_HOVER, ROAD_FILL_SELECTED } from "@/config/road";
+
+import {
+	editInteractable,
+	getInteractable,
+	type InteractableState,
+} from "@/events/interactables";
+import { offsetPath as getOffsetPath } from "@/road/offsetCurve";
+import { addHandlePathsToPath, handles } from "@/road/handle";
+import { getRoad } from "@/road/store";
+import { type Handle, type Road } from "@/types/road";
+import type { Coordinate } from "@/types/position";
+import { bezier, point } from "@/utils/canvas";
 
 export function render(ctx: CanvasRenderingContext2D, roads: Road[]) {
-	debug("rendering")
 	for (const road of roads) renderRoad(ctx, road);
 	for (const handle of get(handles)) renderHandle(ctx, handle);
 }
@@ -18,7 +28,7 @@ export function renderRoad(ctx: CanvasRenderingContext2D, road: Road) {
 	let interactable;
 	try {
 		interactable = getInteractable(road.id);
-	} catch (e) { }
+	} catch (e) {}
 
 	const to =
 		typeof road.to === "string"
@@ -51,9 +61,14 @@ export function renderRoad(ctx: CanvasRenderingContext2D, road: Road) {
 	});
 
 	if (!road.ghost) {
+		const fillPathWithHandles = addHandlePathsToPath(road.id, fillPath2D);
 		try {
-			editInteractable<"road", "bounds">(road.id, "bounds", fillPath2D);
-		} catch (err) { }
+			editInteractable<"road", "bounds">(
+				road.id,
+				"bounds",
+				new Path2D(fillPathWithHandles),
+			);
+		} catch (err) {}
 	}
 	// console.log(fillPath);
 }
@@ -74,24 +89,27 @@ function combinePaths(path1: Coordinate[][], path2: Coordinate[][]) {
 
 function getRoadFillColor(state: InteractableState) {
 	switch (state) {
-		case "idle": return "white";
-		case "hover": return "#eeeeee";
-		case "selected": return "#dddddd";
-		default: return "white"
+		case "hover":
+			return ROAD_FILL_HOVER;
+		case "selected":
+			return ROAD_FILL_SELECTED;
+		default:
+			return ROAD_FILL;
 	}
 }
 
 export function renderHandle(ctx: CanvasRenderingContext2D, handle: Handle) {
-	// try {
-	// 	let parent = getInteractable(handle.parent);
-	// 	if (parent && parent.state !== "selected") return;
-	// } catch(e) {
-	// 	console.error(e)
-	// }
+	try {
+		let parent = getInteractable(handle.parent);
+		if (parent && parent.state !== "selected") return;
+	} catch (e) {
+		console.error(e);
+	}
 
 	point(ctx, handle.position, {
-		color: handle.affects === "curve" ? "lime" : "green",
-		radius: handle.affects === "curve" ? 5 : 10,
+		color:
+			handle.affects === "curve" ? HANDLE_CURVE_COLOR : HANDLE_POSITION_COLOR,
+		radius:
+			handle.affects === "curve" ? HANDLE_CURVE_RADIUS : HANDLE_POSITION_RADIUS,
 	});
 }
-
