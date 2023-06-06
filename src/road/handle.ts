@@ -1,9 +1,11 @@
 import { derived, get, writable } from "svelte/store";
+
 import {
 	createMouseFollower,
 	destroyMouseFollower,
 } from "@/components/MouseFollower";
 import { HANDLE_CURVE_RADIUS, HANDLE_POSITION_RADIUS } from "@/config/handle";
+import { getInteractable } from "@/events/interactables";
 import { mouseState } from "@/events/store";
 import {
 	editRoad,
@@ -12,9 +14,9 @@ import {
 	reverseRoad,
 	roads,
 } from "@/road/store";
+
 import type { Coordinate } from "@/types/position";
 import { type Handle, type Road as RoadType } from "@/types/road";
-import { getInteractable } from "@/events/interactables";
 
 export const handles = derived(roads, (roads) => getAllHandlesFromRoads(roads));
 

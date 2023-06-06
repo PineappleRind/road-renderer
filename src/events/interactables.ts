@@ -1,4 +1,5 @@
 import { derived, get, writable } from "svelte/store";
+
 import { mouseState } from "@/events/store";
 import { ctx } from "@/render";
 import type { BoundingBox, Coordinate } from "@/types/position";
@@ -107,9 +108,9 @@ mouseState.subscribe((pos) => {
 			);
 
 		let newState: InteractableState;
-		let mouseUp = !pos.down && pos.previous.down;
-		let isNowInPath = isInPath(pos);
-		let clickInPath = mouseUp && isInPath(pos.previous);
+		const mouseUp = !pos.down && pos.previous.down;
+		const isNowInPath = isInPath(pos);
+		const clickInPath = mouseUp && isInPath(pos.previous);
 		// Click inside
 		if (clickInPath || (!mouseUp && interactable.state === "selected"))
 			newState = "selected";

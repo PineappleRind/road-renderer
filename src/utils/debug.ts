@@ -1,11 +1,11 @@
 let currentGroup = getTime();
 
 export const debug = (...data) => {
-	let now = getTime();
+	const now = getTime();
 
 	if (currentGroup !== now) {
 		console.groupEnd();
-		console.groupCollapsed(`%cDebug`, "font-weight: bold; color: blue");
+		console.groupCollapsed("%cDebug", "font-weight: bold; color: blue");
 		currentGroup = getTime();
 	}
 

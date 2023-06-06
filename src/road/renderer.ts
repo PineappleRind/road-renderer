@@ -1,24 +1,24 @@
 import { get } from "svelte/store";
+
 import {
 	HANDLE_CURVE_COLOR,
+	HANDLE_CURVE_RADIUS,
 	HANDLE_POSITION_COLOR,
 	HANDLE_POSITION_RADIUS,
-	HANDLE_CURVE_RADIUS,
 } from "@/config/handle";
 import { ROAD_FILL, ROAD_FILL_HOVER, ROAD_FILL_SELECTED } from "@/config/road";
-
 import {
 	editInteractable,
 	getInteractable,
 	type InteractableState,
 } from "@/events/interactables";
-import { offsetPath as getOffsetPath } from "@/road/offsetCurve";
 import { addHandlePathsToPath, handles } from "@/road/handle";
+import { offsetPath as getOffsetPath } from "@/road/offsetCurve";
 import { getRoad } from "@/road/store";
-import { type Handle, type Road } from "@/types/road";
-import type { Coordinate } from "@/types/position";
 import { bezier, point } from "@/utils/canvas";
 
+import type { Coordinate } from "@/types/position";
+import { type Handle, type Road } from "@/types/road";
 export function render(ctx: CanvasRenderingContext2D, roads: Road[]) {
 	for (const road of roads) renderRoad(ctx, road);
 	for (const handle of get(handles)) renderHandle(ctx, handle);
@@ -100,7 +100,7 @@ function getRoadFillColor(state: InteractableState) {
 
 export function renderHandle(ctx: CanvasRenderingContext2D, handle: Handle) {
 	try {
-		let parent = getInteractable(handle.parent);
+		const parent = getInteractable(handle.parent);
 		if (parent && parent.state !== "selected") return;
 	} catch (e) {
 		console.error(e);

@@ -1,15 +1,17 @@
 import { get } from "svelte/store";
+
 import {
 	createMouseFollower,
 	destroyMouseFollower,
 } from "@/components/MouseFollower";
-import { mouseState } from "@/events/store";
-import { registerInteractable } from "@/events/interactables";
-import { addRoadToStore, editRoad } from "@/road/store";
-import type { Coordinate } from "@/types/position";
-import { generateID } from "@/utils/road";
-import { distance } from "@/utils/distance";
 import { ROAD_MIN_LENGTH } from "@/config/road";
+import { registerInteractable } from "@/events/interactables";
+import { mouseState } from "@/events/store";
+import { addRoadToStore, editRoad } from "@/road/store";
+import { distance, halfway } from "@/utils/position";
+import { generateID } from "@/utils/road";
+
+import type { Coordinate } from "@/types/position";
 
 export default async function creationWizard(
 	from: Coordinate | undefined,
@@ -21,7 +23,12 @@ export default async function creationWizard(
 
 	if (!to) {
 		// Create a ghost road that will be edited when mouse position changes
-		createRoad(from, get(mouseState), roadID, true);
+		addRoadToStore({
+			from,
+			to: get(mouseState),
+			id: roadID,
+			ghost: true,
+		});
 
 		async function getRoadEndpoint(message?: string) {
 			// Start editing the road position on mouse move
@@ -43,7 +50,7 @@ export default async function creationWizard(
 		editRoad(roadID, "ghost", false);
 	} else {
 		// If an endpoint is already specified, create the road then and there
-		createRoad(from, to, roadID);
+		addRoadToStore({ from, to, id: roadID });
 	}
 
 	registerInteractable<"road">({
@@ -66,24 +73,4 @@ async function getUserMouseInput(prompt: string): Promise<Coordinate> {
 	document.removeEventListener("click", resolveCache);
 	destroyMouseFollower();
 	return { x: e.clientX, y: e.clientY };
-}
-
-function createRoad(
-	from: Coordinate,
-	to: Coordinate,
-	roadID: string,
-	ghost = false,
-) {
-	addRoadToStore({
-		from,
-		to,
-		curve: halfway(from, to),
-		id: roadID,
-		ghost,
-	});
-}
-
-function halfway(from: Coordinate, to: Coordinate): Coordinate {
-	const lerp = (a: number, b: number, t: number) => a + t * (b - a);
-	return { x: lerp(from.x, to.x, 0.5), y: lerp(from.y, to.y, 0.5) };
 }

@@ -3,8 +3,8 @@
 // a component from its own module
 
 import {
-	mouseFollowerOpen,
 	default as MouseFollower,
+	mouseFollowerOpen,
 } from "@/components/MouseFollower.svelte";
 import { createSlots } from "@/utils/slots";
 

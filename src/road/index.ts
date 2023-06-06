@@ -1,15 +1,17 @@
 import { get } from "svelte/store";
-import { render as renderRoads } from "@/road/renderer";
-import { render as renderScene } from "@/render";
-import creationWizard from "@/road/creation";
-import { getRoad, getRoadIndex, roads } from "@/road/store";
-import { handles } from "@/road/handle";
-import type { Coordinate } from "@/types/position";
+
 import {
 	deleteInteractable,
 	getInteractableIndex,
 } from "@/events/interactables";
 import { interactableState } from "@/events/interactables";
+import { render as renderScene } from "@/render";
+import creationWizard from "@/road/creation";
+import { handles } from "@/road/handle";
+import { render as renderRoads } from "@/road/renderer";
+import { getRoadIndex, roads } from "@/road/store";
+
+import type { Coordinate } from "@/types/position";
 
 export default {
 	create: (from?: Coordinate, to?: Coordinate) => {

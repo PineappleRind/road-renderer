@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "check": "svelte-check --tsconfig ./tsconfig.json"
+    "check": "svelte-check --tsconfig ./tsconfig.json",
+    "loc": "git ls-files | egrep '\\.ts' | xargs wc -l | sort & echo '(remember not to run this using Bun due to issue #53..)'"
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^2.0.4",
