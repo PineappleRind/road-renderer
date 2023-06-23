@@ -44,8 +44,13 @@
     top: var(--y);
     animation: mouse-follower-in 0.2s;
     text-shadow: 0px 0px 10px var(--background-l0), 0px 0px 10px var(--background-l0);
+    transition: opacity 0.2s, scale 0.2s;
+  }
+  :global(.mouse-follower.hidden) {
+    opacity: 0;
+    scale: 0.98;
   }
   @keyframes mouse-follower-in {
-    from { opacity: 0; scale: 0.99 }
+    from { opacity: 0; scale: 0.98 }
   }
 </style>

@@ -12,51 +12,62 @@ import { distance, halfway } from "@/utils/position";
 import { generateID } from "@/utils/road";
 
 import type { Coordinate } from "@/types/position";
+import type { Road } from "@/types/road";
 
-export default async function creationWizard(
-	from: Coordinate | undefined,
-	to: Coordinate | undefined,
-) {
-	const roadID = `road-${generateID()}`;
-	if (!from)
-		from = await getUserMouseInput("Choose a start point for your road");
+/**
+ * Creates a road from `from` to `to`. If either is undefined,
+ * prompts the user to click somewhere, obtaining a Coordinate.
+ * @param from Start point of the road.
+ * @param to Endpoint of the road.
+ */
+export async function createRoad(from?: Coordinate, to?: Coordinate) {
+	const newRoad: Road = {
+		id: `road-${generateID()}`,
+		from,
+		to,
+	} as Road;
+	if (!newRoad.from)
+		newRoad.from = await getUserMouseInput(
+			"Choose a start point for your road",
+		);
 
-	if (!to) {
+	if (!newRoad.to) {
 		// Create a ghost road that will be edited when mouse position changes
-		addRoadToStore({
-			from,
+		// Yes, I'm using Object.assign because it's a const.
+		// "Then why not make it a `let`?!?!!" you ask too many questions.
+		Object.assign(newRoad, {
 			to: get(mouseState),
-			id: roadID,
 			ghost: true,
 		});
+		addRoadToStore(newRoad);
 
+		// Functionality wrapped in a function so we can recurse
 		async function getRoadEndpoint(message?: string) {
 			// Start editing the road position on mouse move
 			const unsubscribe = mouseState.subscribe(({ x, y }) => {
-				editRoad(roadID, "to", { x, y });
-				editRoad(roadID, "curve", halfway(from, { x, y }));
+				editRoad(newRoad.id, "to", { x, y });
+				editRoad(newRoad.id, "curve", halfway(from, { x, y }));
 			});
-			to = await getUserMouseInput(message || "Choose an end point");
+			newRoad.to = await getUserMouseInput(message || "Choose an end point");
 			// Stop editing the road position on mouse move
 			unsubscribe();
-			if (distance(from, to) < ROAD_MIN_LENGTH)
+			if (distance(newRoad.from, newRoad.to) < ROAD_MIN_LENGTH)
 				return await getRoadEndpoint(
 					"Road too short — choose a different end point",
 				);
 		}
 		await getRoadEndpoint();
-
 		// Set the road in stone
-		editRoad(roadID, "ghost", false);
+		editRoad(newRoad.id, "ghost", false);
 	} else {
 		// If an endpoint is already specified, create the road then and there
-		addRoadToStore({ from, to, id: roadID });
+		addRoadToStore(newRoad);
 	}
 
 	registerInteractable<"road">({
 		bounds: null,
 		type: "road",
-		id: roadID,
+		id: newRoad.id,
 		state: "selected",
 	});
 }
@@ -68,6 +79,7 @@ async function getUserMouseInput(prompt: string): Promise<Coordinate> {
 	let resolveCache: (value: MouseEvent | PromiseLike<MouseEvent>) => void;
 	const e: MouseEvent = await new Promise((resolve) => {
 		resolveCache = resolve;
+		// This automatically passes the MouseEvent to `resolve`
 		document.addEventListener("click", resolve);
 	});
 	document.removeEventListener("click", resolveCache);

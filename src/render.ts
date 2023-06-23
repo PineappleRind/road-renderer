@@ -1,16 +1,15 @@
 import { get, writable } from "svelte/store";
 
 import { mouseState } from "@/events/store";
-import Road from "@/road";
-import { roads } from "@/road/store";
+import { render } from "@/road/renderer";
 
 export const ctx = writable<CanvasRenderingContext2D>();
 
-export function render() {
+export function renderToCanvas() {
 	const ctx$ = get(ctx);
 	if (!ctx$) return;
 	ctx$.clearRect(0, 0, window.innerWidth, window.innerHeight);
-	Road.render(ctx$, get(roads));
+	render();
 }
 
 mouseState.subscribe(async () => {

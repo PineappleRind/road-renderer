@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import events from "@/events/index";
-  import { ctx as ctxStore, render as render$ } from "@/render";
+  import { ctx as ctxStore, renderToCanvas as render$ } from "@/render";
   let canvas: HTMLCanvasElement;
   onMount(() => {
     let ctx: CanvasRenderingContext2D = canvas.getContext("2d");

@@ -39,23 +39,12 @@ export const currentSelection = derived(interactableState, (event) => {
  * @param object The interactable to register.
  * @returns The index of the newly registered interactable.
  */
-export function registerInteractable<T extends InteractableType>({
-	bounds,
-	id,
-	type,
-	parent,
-	state = "idle",
-}: Interactable<T>): number {
+export function registerInteractable<T extends InteractableType>(
+	interactable: Interactable<T>,
+): number {
 	let index: number;
 	interactables.update((items) => {
-		const newInteractable: Interactable<T> = {
-			bounds,
-			id,
-			state,
-			type,
-			parent,
-		};
-		items.push(newInteractable);
+		items.push(interactable);
 		index = items.length;
 		return items;
 	});
@@ -75,11 +64,13 @@ export function getInteractable(id: string, loud?: boolean) {
 
 export function editInteractable<
 	T extends InteractableType,
-	K extends keyof Interactable<T>,
+	K extends keyof Interactable<T> extends string
+		? keyof Interactable<T>
+		: never,
 >(id: string, key: K, value: Interactable<T>[K]) {
 	const index = getInteractableIndex(id, true);
 	const interactable = get(interactables)[index];
-	interactable[key] = value;
+	interactable[key as string] = value;
 	interactables.update((items) => {
 		items.splice(index, 1, interactable);
 		return items;

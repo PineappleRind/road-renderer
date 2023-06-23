@@ -8,7 +8,8 @@ import {
 } from "@/components/MouseFollower.svelte";
 import { createSlots } from "@/utils/slots";
 
-export function createMouseFollower(text) {
+/** Displays text that follows the user's mouse */
+export function createMouseFollower(text: string) {
 	return new MouseFollower({
 		props: {
 			// @ts-ignore
@@ -22,6 +23,11 @@ export function createMouseFollower(text) {
 	});
 }
 
-export function destroyMouseFollower() {
-	mouseFollowerOpen.remove();
+export async function destroyMouseFollower() {
+	// Make sure that mouseFollowerOpen doesn't
+	// change after our setTimeout resolves
+	const mouseFollowerOpen$ = mouseFollowerOpen;
+	mouseFollowerOpen$.classList.add("hidden");
+	await new Promise((resolve) => setTimeout(resolve, 2000));
+	mouseFollowerOpen$.remove();
 }

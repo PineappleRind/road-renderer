@@ -2,7 +2,7 @@ import { get } from "svelte/store";
 
 import Popover from "@/components/Popover.svelte";
 import { mouseState } from "@/events/store";
-import Road from "@/road";
+import { createRoad } from "@/road/create";
 
 export function contextmenu(e: MouseEvent) {
 	e.preventDefault();
@@ -14,7 +14,7 @@ export function contextmenu(e: MouseEvent) {
 			actions: [
 				{
 					name: "Create Road",
-					action: () => Road.create({ x: menuPosition.x, y: menuPosition.y }),
+					action: () => createRoad({ x: menuPosition.x, y: menuPosition.y }),
 				},
 			],
 		},

@@ -4,7 +4,7 @@ import {
 	createMouseFollower,
 	destroyMouseFollower,
 } from "@/components/MouseFollower";
-import { HANDLE_CURVE_RADIUS, HANDLE_POSITION_RADIUS } from "@/config/handle";
+import { HANDLE_RADIUS_CURVE, HANDLE_RADIUS_POSITION } from "@/config/handle";
 import { getInteractable } from "@/events/interactables";
 import { mouseState } from "@/events/store";
 import {
@@ -17,14 +17,14 @@ import {
 
 import type { Coordinate } from "@/types/position";
 import { type Handle, type Road as RoadType } from "@/types/road";
+import { mouseFollowerOpen } from "@/components/MouseFollower.svelte";
 
 export const handles = derived(roads, (roads) => getAllHandlesFromRoads(roads));
 
 const distance = (p1: Coordinate, p2: Coordinate) =>
 	Math.hypot(p2.x - p1.x, p2.y - p1.y);
-
-const RADIUS = 10;
-const draggingPoint = writable<Handle | null>(null);
+/** The point that the user is currently dragging */
+export const draggingPoint = writable<Handle | null>(null);
 /** A road ID that we may connect to on mouseup */
 let potentialRoadConnectionHandle: Handle | null = null;
 function getHandleCollisions(mousePos: Coordinate): Handle | null {
@@ -32,14 +32,23 @@ function getHandleCollisions(mousePos: Coordinate): Handle | null {
 	// If we're dragging a point, we're still going to loop through and find
 	// candidates, because we'll use them to determine potential connections
 	for (const handle of get(handles)) {
+		const parentInteractable = getInteractable(handle.parent);
+		const $draggingPoint = get(draggingPoint);
 		// if this handle doesn't intersect with the mouse, get rid of it
-		if (!mouseIntersectsWith(mousePos, handle.position, RADIUS)) continue;
-		// if this handle's parent interactable isn't selected, ignore it
 		if (
-			getInteractable(handle.parent) &&
-			getInteractable(handle.parent).state !== "selected"
+			!mouseIntersectsWith(
+				mousePos,
+				handle.position,
+				handle.affects === "curve"
+					? HANDLE_RADIUS_CURVE
+					: HANDLE_RADIUS_POSITION,
+			)
 		)
 			continue;
+		// ignore this handle if the parent isn't selected
+		// console.log(parentInteractable?.state);
+		if (parentInteractable && parentInteractable.state !== "selected") continue;
+
 		// now put it as a candidate
 		candidateHandles.push(handle);
 	}
@@ -56,7 +65,8 @@ function getHandleCollisions(mousePos: Coordinate): Handle | null {
 		});
 		// if we're dragging a point on top of another point..
 		if (validConnection(candidateHandles)) {
-			createMouseFollower("Let go to connect with this road");
+			if (!mouseFollowerOpen)
+				createMouseFollower("Let go to connect with this road");
 			potentialRoadConnectionHandle = candidateHandles[1];
 		} else {
 			destroyMouseFollower();
@@ -156,7 +166,7 @@ export function addHandlePathsToPath(roadID: string, path: Path2D) {
 		path.arc(
 			handle.position.x,
 			handle.position.y,
-			handle.affects === "curve" ? HANDLE_CURVE_RADIUS : HANDLE_POSITION_RADIUS,
+			handle.affects === "curve" ? HANDLE_RADIUS_CURVE : HANDLE_RADIUS_POSITION,
 			0,
 			2 * Math.PI,
 		);
