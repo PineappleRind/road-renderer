@@ -91,16 +91,22 @@ mouseState.subscribe((pos) => {
 		let newState: InteractableState;
 		let mouseUp = !pos.down && pos.previous.down;
 		// Click inside
-		if (isInPath && mouseUp || (!mouseUp && interactable.state === "selected")) newState = "selected";
+		if (
+			(isInPath && mouseUp) ||
+			(!mouseUp && interactable.state === "selected")
+		)
+			newState = "selected";
 		// Click outside
 		else if (!isInPath && mouseUp) newState = "idle";
 		// Hover inside
-		else if (isInPath && !pos.down && newState !== "selected") newState = "hover";
+		else if (isInPath && !pos.down && newState !== "selected")
+			newState = "hover";
 		// Hover outside
-		else if (!isInPath && !pos.down && newState !== "selected") newState = "idle";
-		debug(newState, mouseUp)
+		else if (!isInPath && !pos.down && newState !== "selected")
+			newState = "idle";
+		// debug(newState, mouseUp)
 
-		// if this isn't news, don't bother telling 
+		// if this isn't news, don't bother telling
 		// everyone again. they don't want to hear it
 		if (newState === interactable.state) continue;
 

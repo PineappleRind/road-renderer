@@ -141,7 +141,7 @@ mouseState.subscribe((pos) => {
 		// if the road is a ghost
 		if (get(roads)[getRoadIndex(activeHandle.parent, true) as number].ghost)
 			return;
-		handleMovement(activeHandle, pos);
+		handleMovement(activeHandle, { x: +pos.x, y: +pos.y });
 	}
 });
 

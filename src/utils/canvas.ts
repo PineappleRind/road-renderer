@@ -31,18 +31,16 @@ export function bezier(
 	ctx.lineWidth = thickness;
 	const path2d = new Path2D();
 	ctx.beginPath();
+
 	for (const curve of bezier) {
 		if (curve instanceof Array) {
 			path2d.moveTo(curve[0].x, curve[0].y);
-			path2d.bezierCurveTo(
-				curve[0].x,
-				curve[0].y,
-				curve[1].x,
-				curve[1].y,
-				curve[2].x,
-				curve[2].y,
-			);
-		} else path2d.lineTo(curve.x, curve.y);
+			if (curve[1])
+				path2d.quadraticCurveTo(curve[1].x, curve[1].y, curve[2].x, curve[2].y);
+			else path2d.lineTo(curve[2].x, curve[2].y);
+		} else {
+			path2d.lineTo(curve.x, curve.y);
+		}
 	}
 	ctx[action](path2d);
 	ctx.closePath();

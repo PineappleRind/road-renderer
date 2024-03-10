@@ -51,10 +51,6 @@ export class Vector {
 	withLength(newLength: number) {
 		return this.normalize().scaleBy(newLength);
 	}
-	projectOn(other: Vector) {
-		const normalized = other.normalize();
-		return normalized.scaleBy(this.dotProduct(normalized));
-	}
 	getPerpendicular() {
 		return new Vector(-this.components[1], this.components[0]);
 	}
@@ -68,5 +64,10 @@ export class Vector {
 	}
 	round() {
 		return new Vector(...this.components.map((c) => Math.round(c)));
+	}
+	distanceToSquared(v: Vector) {
+		var dx = this.components[0] - v.components[0];
+		var dy = this.components[1] - v.components[1];
+		return dx * dx + dy * dy;
 	}
 }

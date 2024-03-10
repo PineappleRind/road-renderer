@@ -1,16 +1,23 @@
-let currentGroup = getTime();
+let lastCreatedGroup = getTime();
 
 export const debug = (...data) => {
-    let now = getTime();
-    if (currentGroup !== now) console.groupCollapsed(`%cDebug %c${currentGroup}`, "font-weight: bold; color: blue", "font-weight: normal; color: cornflowerblue");
+	let now = getTime();
+	if (lastCreatedGroup !== now) {
+		console.groupEnd();
+		console.groupCollapsed(
+			`%cDebug %c${lastCreatedGroup}`,
+			"font-weight: bold; color: dodgerblue",
+			"font-weight: normal; color: cornflowerblue",
+		);
+		lastCreatedGroup = getTime();
+	}
 
-    Function.prototype.apply.call(console.log, window.console, data);
-    if (currentGroup !== now) {
-        console.groupEnd();
-    }
-    currentGroup = getTime();
+	Function.prototype.apply.call(console.log, window.console, data);
+	if (lastCreatedGroup !== now) {
+		
+	}
 };
 
 function getTime() {
-    return new Date().toISOString().split("T")[1].slice(0, -3);
+	return new Date().toISOString().split("T")[1].slice(0, -5);
 }

@@ -1,5 +1,9 @@
 import { get } from "svelte/store";
-import { editInteractable, getInteractable, type InteractableState } from "../events/interactables";
+import {
+	editInteractable,
+	getInteractable,
+	type InteractableState,
+} from "../events/interactables";
 import { offsetPath as getOffsetPath } from "./offsetCurve";
 import { handles } from "../road/handle";
 import { getRoad } from "./store";
@@ -9,7 +13,6 @@ import { bezier, point } from "../utils/canvas";
 import { debug } from "../utils/debug";
 
 export function render(ctx: CanvasRenderingContext2D, roads: Road[]) {
-	debug("rendering")
 	for (const road of roads) renderRoad(ctx, road);
 	for (const handle of get(handles)) renderHandle(ctx, handle);
 }
@@ -18,7 +21,7 @@ export function renderRoad(ctx: CanvasRenderingContext2D, road: Road) {
 	let interactable;
 	try {
 		interactable = getInteractable(road.id);
-	} catch (e) { }
+	} catch (e) {}
 
 	const to =
 		typeof road.to === "string"
@@ -31,53 +34,59 @@ export function renderRoad(ctx: CanvasRenderingContext2D, road: Road) {
 		to,
 		30,
 	);
+	// debug(offsetCurveA, offsetCurveB);
 
-	const { a: roadLinesCurve } = getOffsetPath(road.from, road.curve, to, 0);
+	const roadLinesCurve = [[road.from, road.curve, to]];
 
 	const fillPath = combinePaths(offsetCurveA, offsetCurveB);
 	const fillPath2D = bezier(ctx, fillPath, {
 		color: getRoadFillColor(interactable?.state),
 		action: "fill",
 	});
+
 	bezier(ctx, roadLinesCurve, {
 		color: road.ghost ? "hsla(0,0%,0%,0.2)" : "black",
 		dashed: true,
 	});
 	bezier(ctx, offsetCurveA, {
-		color: road.ghost ? "hsla(0,0%,0%,0.2)" : "black",
+		color: "red", // road.ghost ? "hsla(0,0%,0%,0.2)" : "black",
 	});
 	bezier(ctx, offsetCurveB, {
-		color: road.ghost ? "hsla(0,0%,0%,0.2)" : "black",
+		color: "blue", // road.ghost ? "hsla(0,0%,0%,0.2)" : "black",
 	});
-
+	debug(fillPath)
 	if (!road.ghost) {
 		try {
 			editInteractable<"road", "bounds">(road.id, "bounds", fillPath2D);
-		} catch (err) { }
+		} catch (err) {}
 	}
-	// console.log(fillPath);
 }
 
 function combinePaths(path1: Coordinate[][], path2: Coordinate[][]) {
-	const flatPath2 = path2.flat();
+	const flatPath2 = path1.flat();
 	flatPath2.reverse();
-	const flatPath1 = path1.flat();
+	const flatPath1 = path2.flat();
 	const joined = [
-		flatPath1,
+	flatPath1,
 		flatPath1.at(-1),
 		flatPath2[0],
-		flatPath2,
+	flatPath2,
 		flatPath1[0],
 	];
+
 	return joined;
 }
 
 function getRoadFillColor(state: InteractableState) {
 	switch (state) {
-		case "idle": return "white";
-		case "hover": return "#eeeeee";
-		case "selected": return "#dddddd";
-		default: return "white"
+		case "idle":
+			return "white";
+		case "hover":
+			return "#eeeeee";
+		case "selected":
+			return "#dddddd";
+		default:
+			return "white";
 	}
 }
 
@@ -94,4 +103,3 @@ export function renderHandle(ctx: CanvasRenderingContext2D, handle: Handle) {
 		radius: handle.affects === "curve" ? 5 : 10,
 	});
 }
-
