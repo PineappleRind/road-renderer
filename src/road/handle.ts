@@ -1,13 +1,14 @@
 import { derived, get, writable } from "svelte/store";
-import { mouseState } from "../events/store";
-import { editRoad, getRoad, getRoadIndex, reverseRoad, roads } from "./store";
-import type { Coordinate } from "../types/position";
-import { type Handle, type Road as RoadType } from "../types/road";
+import Road from ".";
 import {
 	createMouseFollower,
 	destroyMouseFollower,
 } from "../components/MouseFollower";
-import Road from ".";
+import { mouseState } from "../events/store";
+import type { Coordinate } from "../types/position";
+import type { Handle, Road as RoadType } from "../types/road";
+import { Vector } from "../utils/vector";
+import { editRoad, getRoad, getRoadIndex, reverseRoad, roads } from "./store";
 
 export const handles = derived(roads, (roads) => getAllHandlesFromRoads(roads));
 
@@ -119,10 +120,22 @@ export function getAllHandlesFromRoads(roads: RoadType[]) {
 
 function handleMovement(handle: Handle, coordinate: Coordinate) {
 	const parent = getRoad(handle.parent, true) as RoadType;
+	// console.log(`moving`, handle, parent);
+	editRoad(parent.id, handle.affects, coordinate);
+	// ensure when you move curve points,
+	// the other connected road's curve moves too
+	if (handle.affects !== "curve") return;
+	const connectingRoad = getRoad(findConnectingRoad(parent));
+	if (!connectingRoad) return;
 
-	if (typeof parent.to !== "string")
-		editRoad(parent.id, handle.affects, coordinate);
-	else editRoad(parent.to, "from", coordinate);
+	const midpoint =
+		typeof parent.to === "string" ? connectingRoad.from : parent.to;
+	const directlyOpposite = new Vector(parent.curve.x, parent.curve.y).lerp(
+		new Vector(midpoint.x, midpoint.y),
+		2,
+	);
+
+	editRoad(connectingRoad.id, "curve", directlyOpposite.asCoordinate());
 }
 
 mouseState.subscribe((pos) => {
@@ -153,4 +166,23 @@ function connect(beingDragged: Handle, target: Handle) {
 	if (target.affects === "to") reverseRoad(targetRoad.id);
 	editRoad(beingDraggedRoad.id, "to", targetRoad.id);
 	draggingPoint.set(null);
+}
+
+function findConnectingRoad(road: RoadType): string | null {
+	if (typeof road.to === "string") return road.to;
+	// try to find a road that references this one
+	for (const roadCandidate of get(roads)) {
+		console.log(
+			road.id,
+			road.from,
+			road.to,
+			roadCandidate.id,
+			road.from,
+			road.to,
+		);
+		// @ts-ignore we know road.to is a string
+		if (road.to === roadCandidate.id || road.from === roadCandidate.id)
+			return roadCandidate.id;
+	}
+	return null;
 }

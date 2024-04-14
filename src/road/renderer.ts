@@ -1,16 +1,17 @@
 import { get } from "svelte/store";
 import {
+	type Interactable,
+	type InteractableState,
+	type InteractableType,
 	editInteractable,
 	getInteractable,
-	type InteractableState,
 } from "../events/interactables";
-import { offsetPath as getOffsetPath } from "./offsetCurve";
 import { handles } from "../road/handle";
-import { getRoad } from "./store";
-import { type Handle, type Road } from "../types/road";
 import type { Coordinate } from "../types/position";
+import type { Handle, Road } from "../types/road";
 import { bezier, point } from "../utils/canvas";
-import { debug } from "../utils/debug";
+import { offsetPath as getOffsetPath } from "./offsetCurve";
+import { getRoad } from "./store";
 
 export function render(ctx: CanvasRenderingContext2D, roads: Road[]) {
 	for (const road of roads) renderRoad(ctx, road);
@@ -18,7 +19,7 @@ export function render(ctx: CanvasRenderingContext2D, roads: Road[]) {
 }
 
 export function renderRoad(ctx: CanvasRenderingContext2D, road: Road) {
-	let interactable;
+	let interactable: Interactable<InteractableType>;
 	try {
 		interactable = getInteractable(road.id);
 	} catch (e) {}
@@ -34,7 +35,6 @@ export function renderRoad(ctx: CanvasRenderingContext2D, road: Road) {
 		to,
 		30,
 	);
-	// debug(offsetCurveA, offsetCurveB);
 
 	const roadLinesCurve = [[road.from, road.curve, to]];
 
@@ -54,7 +54,7 @@ export function renderRoad(ctx: CanvasRenderingContext2D, road: Road) {
 	bezier(ctx, offsetCurveB, {
 		color: "blue", // road.ghost ? "hsla(0,0%,0%,0.2)" : "black",
 	});
-	debug(fillPath)
+
 	if (!road.ghost) {
 		try {
 			editInteractable<"road", "bounds">(road.id, "bounds", fillPath2D);
@@ -63,15 +63,13 @@ export function renderRoad(ctx: CanvasRenderingContext2D, road: Road) {
 }
 
 function combinePaths(path1: Coordinate[][], path2: Coordinate[][]) {
-	const flatPath2 = path1.flat();
-	flatPath2.reverse();
-	const flatPath1 = path2.flat();
+	const flatPath1 = path1;
+	const flatPath2 = path2.toReversed().map((x) => x.toReversed());
 	const joined = [
-	flatPath1,
-		flatPath1.at(-1),
-		flatPath2[0],
-	flatPath2,
-		flatPath1[0],
+		...flatPath1,
+		flatPath2.at(0)[0],
+		...flatPath2,
+		flatPath1[0][0],
 	];
 
 	return joined;

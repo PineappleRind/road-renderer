@@ -3,15 +3,16 @@ import {
 	createMouseFollower,
 	destroyMouseFollower,
 } from "../components/MouseFollower";
-import type { Coordinate } from "../types/position";
-import { addRoadToStore, editRoad } from "./store";
-import { mouseState } from "../events/store";
-import { generateID } from "../utils/road";
 import { registerInteractable } from "../events/interactables";
+import { mouseState } from "../events/store";
+import type { Coordinate } from "../types/position";
+import { generateID } from "../utils/road";
+import { Vector } from "../utils/vector";
+import { addRoadToStore, editRoad } from "./store";
 
 export default async function creationWizard(
-	from: Coordinate | undefined,
-	to: Coordinate | undefined,
+	from?: Coordinate,
+	to?: Coordinate,
 ) {
 	const roadID = `road-${generateID()}`;
 	if (!from)
@@ -43,7 +44,7 @@ export default async function creationWizard(
  */
 async function getUserMouseInput(prompt: string): Promise<Coordinate> {
 	createMouseFollower(prompt);
-	let resolveCache;
+	let resolveCache: (m: MouseEvent) => void;
 	const e: MouseEvent = await new Promise((resolve) => {
 		resolveCache = resolve;
 		document.addEventListener("click", resolve);
@@ -67,7 +68,5 @@ function createRoad(
 	});
 }
 
-function halfway(from: Coordinate, to: Coordinate): Coordinate {
-	const lerp = (a: number, b: number, t: number) => a + t * (b - a);
-	return { x: lerp(from.x, to.x, 0.5), y: lerp(from.y, to.y, 0.5) };
-}
+const halfway = (from: Coordinate, to: Coordinate) =>
+	new Vector(from.x, from.y).lerp(new Vector(to.x, to.y), 0.5).asCoordinate();

@@ -1,18 +1,18 @@
 import { get, writable } from "svelte/store";
+import { ctx, render } from "../render";
 import type { BoundingBox } from "../types/position";
-import { mouseState } from "./store";
-import { ctx } from "../render";
-import { debug } from "../utils/debug";
+import { type MouseStateWithPrevious, mouseState } from "./store";
 
 export type InteractableType = "road" | "curveHandle" | "handle";
 export type InteractableState = "idle" | "hover" | "selected";
 
-export type Interactable<T extends InteractableType> = {
+export type Interactable<T extends InteractableType = undefined> = {
 	bounds: Path2D | BoundingBox;
 	id: string;
 	type: T;
 	state: InteractableState;
-} & (T extends "road" ? {} : { parent: string });
+	parent: T extends "road" ? undefined : string;
+};
 
 type InteractEvent = {
 	id: string;
@@ -54,8 +54,8 @@ export function registerInteractable<T extends InteractableType>({
 function getInteractableIndex(id: string, loud?: boolean) {
 	const found = get(interactables).findIndex((i) => i.id === id);
 	if (found === -1 && loud) throw new Error("interactable not found");
-	else if (found === -1) return null;
-	else return found;
+	if (found === -1) return null;
+	return found;
 }
 
 export function getInteractable(id: string) {
@@ -80,16 +80,10 @@ mouseState.subscribe((pos) => {
 	for (const interactable of get(interactables)) {
 		if (!interactable.bounds) continue;
 
-		const isInPath = get(ctx).isPointInPath(
-			interactable.bounds as Path2D,
-			// Multiply by devicePixelRatio because the way we scale the
-			// canvas in Canvas.svelte affects what ctx.isPointInPath does
-			pos.x * devicePixelRatio,
-			pos.y * devicePixelRatio,
-		);
+		const isInPath = isPointInInteractable(interactable, pos);
 
 		let newState: InteractableState;
-		let mouseUp = !pos.down && pos.previous.down;
+		const mouseUp = !pos.down && pos.previous.down;
 		// Click inside
 		if (
 			(isInPath && mouseUp) ||
@@ -104,7 +98,6 @@ mouseState.subscribe((pos) => {
 		// Hover outside
 		else if (!isInPath && !pos.down && newState !== "selected")
 			newState = "idle";
-		// debug(newState, mouseUp)
 
 		// if this isn't news, don't bother telling
 		// everyone again. they don't want to hear it
@@ -116,5 +109,19 @@ mouseState.subscribe((pos) => {
 			to: newState,
 			id: interactable.id,
 		});
+		render(get(ctx));
 	}
 });
+
+export function isPointInInteractable(
+	interactable: Interactable<InteractableType>,
+	pos: MouseStateWithPrevious,
+) {
+	return get(ctx).isPointInPath(
+		interactable.bounds as Path2D,
+		// Multiply by devicePixelRatio because the way we scale the
+		// canvas in Canvas.svelte affects what ctx.isPointInPath does
+		pos.x * devicePixelRatio,
+		pos.y * devicePixelRatio,
+	);
+}

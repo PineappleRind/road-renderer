@@ -68,10 +68,10 @@ export function offsetPath(
 		const lineqa = { p1: qa, p2: qa.add(vt.getPerpendicular()) };
 		const lineqb = { p1: qb, p2: qb.add(vt.getPerpendicular()) };
 
-		q1a = linesIntersect(line1a, lineqa).position.asCoordinate();
-		q2a = linesIntersect(line2a, lineqa).position.asCoordinate();
-		q1b = linesIntersect(line1b, lineqb).position.asCoordinate();
-		q2b = linesIntersect(line2b, lineqb).position.asCoordinate();
+		q1a = linesIntersect(line1a, lineqa).position?.asCoordinate();
+		q2a = linesIntersect(line2a, lineqa).position?.asCoordinate();
+		q1b = linesIntersect(line1b, lineqb).position?.asCoordinate();
+		q2b = linesIntersect(line2b, lineqb).position?.asCoordinate();
 	} else {
 		ca = linesIntersect(line1a, line2a).position?.asCoordinate();
 		cb = linesIntersect(line1b, line2b).position?.asCoordinate();
@@ -80,25 +80,25 @@ export function offsetPath(
 	return {
 		a: split
 			? [
-				[p1a.asCoordinate(), q1a, qa.asCoordinate()],
-				[qa.asCoordinate(), q2a, p2a.asCoordinate()],
-			]
+					[p1a.asCoordinate(), q1a, qa.asCoordinate()],
+					[qa.asCoordinate(), q2a, p2a.asCoordinate()],
+				]
 			: [[p1a.asCoordinate(), ca, p2a.asCoordinate()]],
 		b: split
 			? [
-				[p1b.asCoordinate(), q1b, qb.asCoordinate()],
-				[qb.asCoordinate(), q2b, p2b.asCoordinate()],
-			]
+					[p1b.asCoordinate(), q1b, qb.asCoordinate()],
+					[qb.asCoordinate(), q2b, p2b.asCoordinate()],
+				]
 			: [[p1b.asCoordinate(), cb, p2b.asCoordinate()]],
 	};
 }
 
-const getPointInQuadraticCurve = function (
+const getPointInQuadraticCurve = (
 	t: number,
 	p1: Vector,
 	pc: Vector,
 	p2: Vector,
-) {
+) => {
 	const [p1x, p1y] = p1.components;
 	const [pcx, pcy] = pc.components;
 	const [p2x, p2y] = p2.components;
@@ -110,10 +110,10 @@ const getPointInQuadraticCurve = function (
 
 // http://microbians.com/math/Gabriel_Suchowolski_Quadratic_bezier_offsetting_with_selective_subdivision.pdf
 // http://www.math.vanderbilt.edu/~schectex/courses/cubic/
-const getNearestPoint = function (p1: Vector, pc: Vector, p2: Vector) {
-	var d1 = Math.sqrt(pc.distanceToSquared(p1));
-	var d2 = Math.sqrt(pc.distanceToSquared(p2));
-	var t = d1 / (d1 + d2);
+const getNearestPoint = (p1: Vector, pc: Vector, p2: Vector) => {
+	const d1 = Math.sqrt(pc.distanceToSquared(p1));
+	const d2 = Math.sqrt(pc.distanceToSquared(p2));
+	const t = d1 / (d1 + d2);
 
 	return t;
 };
@@ -127,7 +127,7 @@ enum Intersection {
 function linesIntersect(
 	line1: { p1: Vector; p2: Vector },
 	line2: { p1: Vector; p2: Vector },
-): { type: Intersection, position: Vector } {
+): { type: Intersection; position: Vector } {
 	const intersection = { type: Intersection.Coincident, position: undefined };
 	const { x: l1p1x, y: l1p1y } = line1.p1.round().asCoordinate();
 	const { x: l1p2x, y: l1p2y } = line1.p2.round().asCoordinate();

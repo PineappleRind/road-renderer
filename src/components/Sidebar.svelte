@@ -1,22 +1,27 @@
 <script>
-  import { interactableState } from "../events/interactables";
-  import Debug from "./Debug.svelte";
-  let id;
-  interactableState.subscribe((newState) => {
-    if (!newState) return (id = "Nothing selected");
-    if (newState.to === "selected") id = newState.id;
-  });
+import { interactableState } from "../events/interactables";
+import Debug from "./Debug.svelte";
+let id;
+interactableState.subscribe((newState) => {
+	if (!newState) {
+		id = "Nothing selected";
+		return;
+	}
+	if (newState.to === "selected") id = newState.id;
+});
 
-  let tabActive = "inspector";
-  let tabs = ["inspector", "debug"];
+// biome-ignore lint/style/useConst: svelte binding below
+let tabActive = "inspector";
+const tabs = ["inspector", "debug"];
 </script>
 
 <aside>
   <div class="tabPicker">
     {#each tabs as tab}
+      <!-- svelte-ignore a11y-click-events-have-key-events -->
       <div
         class="tabTrigger"
-        on:click={() => (tabActive = tab)}
+        on:click={() => { tabActive = tab }}
         class:active={tabActive === tab}
       >
         {tab}

@@ -1,5 +1,5 @@
-<script context="module" lang="ts">
-  export let mouseFollowerOpen: HTMLDivElement;
+<script lang="ts" context="module">
+export let mouseFollowerOpen: HTMLDivElement;
 </script>
 
 <script lang="ts">

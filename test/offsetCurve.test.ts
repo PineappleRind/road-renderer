@@ -1,5 +1,5 @@
+import { describe, expect, test } from "bun:test";
 import { testable } from "../src/road/offsetCurve.ts";
-import { test, describe, expect } from "bun:test";
 import { Vector } from "../src/utils/vector.ts";
 
 describe("MathUtils", () => {

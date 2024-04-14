@@ -1,7 +1,7 @@
 import { get } from "svelte/store";
 import Popover from "../components/Popover.svelte";
 import Road from "../road";
-import { mouseState } from "./store";
+import { type MouseStateWithPrevious, mouseState } from "./store";
 
 export function contextmenu(e: MouseEvent) {
 	e.preventDefault();
@@ -10,13 +10,25 @@ export function contextmenu(e: MouseEvent) {
 	new Popover({
 		props: {
 			coordinates: menuPosition,
-			actions: [
-				{
-					name: "Create Road",
-					action: () => Road.create({ x: menuPosition.x, y: menuPosition.y }),
-				},
-			],
+			actions: [getPopoverActions(menuPosition)],
 		},
 		target: app,
 	});
+}
+
+function getPopoverActions(menuPosition: MouseStateWithPrevious) {
+	// if (
+	// 	isPointInInteractable(
+	// 		getInteractable(get(interactableState)?.id),
+	// 		menuPosition,
+	// 	)
+	// )
+	// 	return {
+	// 		name: "Delete Road",
+	// 		action: () => Road.destroy(get(interactableState).id),
+	// 	};
+	return {
+		name: "Create Road",
+		action: () => Road.create({ x: menuPosition.x, y: menuPosition.y }),
+	};
 }

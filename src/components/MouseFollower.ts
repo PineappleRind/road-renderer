@@ -4,11 +4,11 @@
 
 import { createSlots } from "../utils/slots";
 import {
-	mouseFollowerOpen,
 	default as MouseFollower,
+	mouseFollowerOpen,
 } from "./MouseFollower.svelte";
 
-export function createMouseFollower(text) {
+export function createMouseFollower(text: string) {
 	return new MouseFollower({
 		props: {
 			// @ts-ignore
@@ -23,5 +23,5 @@ export function createMouseFollower(text) {
 }
 
 export function destroyMouseFollower() {
-	mouseFollowerOpen.remove();
+	mouseFollowerOpen?.remove();
 }

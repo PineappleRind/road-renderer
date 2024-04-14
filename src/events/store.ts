@@ -2,7 +2,7 @@ import { get, writable } from "svelte/store";
 import type { Coordinate } from "../types/position";
 
 type MouseState = Coordinate & { down: boolean };
-type MouseStateWithPrevious = MouseState & { previous: MouseState };
+export type MouseStateWithPrevious = MouseState & { previous: MouseState };
 
 export const mouseState = writable<MouseStateWithPrevious>({
 	x: 0,
@@ -12,8 +12,8 @@ export const mouseState = writable<MouseStateWithPrevious>({
 });
 
 export function setMouseState(value: MouseState) {
-	let previous = get(mouseState);
-	delete previous.previous;
+	const previous = get(mouseState);
+	previous.previous = undefined;
 	mouseState.set({ ...previous, ...value, previous });
 }
 

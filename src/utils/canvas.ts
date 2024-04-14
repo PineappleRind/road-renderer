@@ -1,5 +1,6 @@
 import type { LineOptions, PathOptions, PointOptions } from "../types/canvas";
 import type { Coordinate } from "../types/position";
+import { debug } from "./debug";
 
 export function line(
 	ctx: CanvasRenderingContext2D,
@@ -32,12 +33,12 @@ export function bezier(
 	const path2d = new Path2D();
 	ctx.beginPath();
 
-	for (const curve of bezier) {
-		if (curve instanceof Array) {
-			path2d.moveTo(curve[0].x, curve[0].y);
-			if (curve[1])
+	for (const [i, curve] of bezier.entries()) {
+		if (Array.isArray(curve)) {
+			if (i === 0) path2d.moveTo(curve[0].x, curve[0].y);
+			if (curve[1]) {
 				path2d.quadraticCurveTo(curve[1].x, curve[1].y, curve[2].x, curve[2].y);
-			else path2d.lineTo(curve[2].x, curve[2].y);
+			} else path2d.lineTo(curve[2].x, curve[2].y);
 		} else {
 			path2d.lineTo(curve.x, curve.y);
 		}
@@ -51,10 +52,12 @@ export function bezier(
 export function point(
 	ctx: CanvasRenderingContext2D,
 	coordinate: Coordinate,
-	{ color = "black", radius = 2 }: PointOptions,
+	{ color = "black", radius = 5 }: PointOptions,
 ) {
+	const prev = ctx.fillStyle;
 	ctx.fillStyle = color;
 	ctx.beginPath();
 	ctx.arc(coordinate.x, coordinate.y, radius, 0, 2 * Math.PI);
 	ctx.fill();
+	ctx.fillStyle = prev;
 }

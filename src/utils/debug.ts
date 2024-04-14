@@ -1,7 +1,7 @@
 let lastCreatedGroup = getTime();
 
 export const debug = (...data) => {
-	let now = getTime();
+	const now = getTime();
 	if (lastCreatedGroup !== now) {
 		console.groupEnd();
 		console.groupCollapsed(
@@ -14,7 +14,6 @@ export const debug = (...data) => {
 
 	Function.prototype.apply.call(console.log, window.console, data);
 	if (lastCreatedGroup !== now) {
-		
 	}
 };
 

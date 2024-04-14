@@ -1,5 +1,5 @@
+import { describe, expect, test } from "bun:test";
 import { Vector } from "../src/utils/vector";
-import { describe, test, expect } from "bun:test";
 
 describe("Vector", () => {
 	test("add", () => {

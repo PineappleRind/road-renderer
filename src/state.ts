@@ -1,6 +1,6 @@
-import { writable, type Writable } from "svelte/store";
+import { writable } from "svelte/store";
 
 /**
- *
+ * A list of road IDs that are currently selected.
  */
-export const selected = writable<string | null>(null);
+export const selection = writable<string[]>([]);

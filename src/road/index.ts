@@ -1,9 +1,9 @@
-import type { Coordinate } from "../types/position";
-import { render } from "./renderer";
-import creationWizard from "./creation";
 import { get } from "svelte/store";
-import { roads } from "./store";
+import type { Coordinate } from "../types/position";
+import creationWizard from "./creation";
 import { handles } from "./handle";
+import { render } from "./renderer";
+import { roads } from "./store";
 
 export default {
 	create: (from?: Coordinate, to?: Coordinate) => {
