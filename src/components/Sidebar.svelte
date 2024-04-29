@@ -28,7 +28,12 @@ const tabs = ["inspector", "debug"];
       </div>
     {/each}
   </div>
-  <div class="tab" class:tabActive={tabActive === "inspector"}>{id}</div>
+  <div class="tab" class:tabActive={tabActive === "inspector"}>
+    {#if id}
+      <p>{id}</p>
+      <!-- <button on:click={() => road.delete(id)}>Delete road</button> -->
+    {/if}
+  </div>
   <div class="tab" class:tabActive={tabActive === "debug"}><Debug /></div>
 </aside>
 
@@ -84,7 +89,7 @@ const tabs = ["inspector", "debug"];
     color: var(--foreground-l1);
   }
   .tabTrigger::after {
-    content: '';
+    content: "";
     position: absolute;
     bottom: 0;
     left: 0;

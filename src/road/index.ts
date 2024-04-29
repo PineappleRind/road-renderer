@@ -1,13 +1,13 @@
 import { get } from "svelte/store";
 import type { Coordinate } from "../types/position";
-import creationWizard from "./creation";
+import { createRoad } from "./create";
 import { handles } from "./handle";
 import { render } from "./renderer";
 import { roads } from "./store";
 
 export default {
 	create: (from?: Coordinate, to?: Coordinate) => {
-		if (!from || !to) return creationWizard(from, to);
+		if (!from || !to) return createRoad(from, to);
 	},
 	render,
 	find: (id: string) => {

@@ -14,7 +14,14 @@ onMount(() => {
 	ctxStore.set(ctx);
 
 	for (const event in events) {
-		document[`on${event}`] = events[event];
+		document[`on${event}`] = (e) => {
+			if (
+				e.target instanceof HTMLElement &&
+				e.target.tagName.toLowerCase() !== "canvas"
+			)
+				return;
+			events[event](e);
+		};
 	}
 });
 

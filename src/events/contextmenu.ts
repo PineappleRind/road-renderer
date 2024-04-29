@@ -1,7 +1,8 @@
 import { get } from "svelte/store";
-import Popover from "../components/Popover.svelte";
-import Road from "../road";
-import { type MouseStateWithPrevious, mouseState } from "./store";
+
+import Popover from "@/components/Popover.svelte";
+import { type MouseStateWithPrevious, mouseState } from "@/events/store";
+import Road from "@/road";
 
 export function contextmenu(e: MouseEvent) {
 	e.preventDefault();

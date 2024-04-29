@@ -1,5 +1,6 @@
 import { get, writable } from "svelte/store";
-import type { Coordinate } from "../types/position";
+
+import type { Coordinate } from "@/types/position";
 
 type MouseState = Coordinate & { down: boolean };
 export type MouseStateWithPrevious = MouseState & { previous: MouseState };

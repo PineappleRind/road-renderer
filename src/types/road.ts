@@ -1,4 +1,4 @@
-import type { Coordinate } from "./position";
+import type { Coordinate } from "@/types/position";
 
 export interface Road {
 	id: string;

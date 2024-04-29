@@ -1,17 +1,20 @@
-import { get } from "svelte/store";
+import HANDLE from "@/config/handle";
+import ROAD from "@/config/road";
 import {
 	type Interactable,
 	type InteractableState,
 	type InteractableType,
 	editInteractable,
 	getInteractable,
-} from "../events/interactables";
-import { handles } from "../road/handle";
-import type { Coordinate } from "../types/position";
-import type { Handle, Road } from "../types/road";
-import { bezier, point } from "../utils/canvas";
-import { offsetPath as getOffsetPath } from "./offsetCurve";
-import { getRoad } from "./store";
+} from "@/events/interactables";
+import { draggingPoint, handles } from "@/road/handle";
+import { offsetPath as getOffsetPath } from "@/road/offsetCurve";
+import { getRoad } from "@/road/store";
+import type { Coordinate } from "@/types/position";
+import type { Handle, Road } from "@/types/road";
+import { bezier, point } from "@/utils/canvas";
+import { distance } from "@/utils/position";
+import { get } from "svelte/store";
 
 export function render(ctx: CanvasRenderingContext2D, roads: Road[]) {
 	for (const road of roads) renderRoad(ctx, road);
@@ -45,17 +48,18 @@ export function renderRoad(ctx: CanvasRenderingContext2D, road: Road) {
 	});
 
 	bezier(ctx, roadLinesCurve, {
-		color: road.ghost ? "hsla(0,0%,0%,0.2)" : "black",
+		color: road.ghost ? ROAD.INNER_STROKE_GHOST : ROAD.INNER_STROKE,
 		dashed: true,
 	});
 	bezier(ctx, offsetCurveA, {
-		color: "red", // road.ghost ? "hsla(0,0%,0%,0.2)" : "black",
+		color: road.ghost ? "hsla(0,0%,0%,0.2)" : "black",
 	});
 	bezier(ctx, offsetCurveB, {
-		color: "blue", // road.ghost ? "hsla(0,0%,0%,0.2)" : "black",
+		color: road.ghost ? "hsla(0,0%,0%,0.2)" : "black",
 	});
 
 	if (!road.ghost) {
+		// const fillPathWithHandles = addHandlePathsToPath(road.id, fillPath2D);
 		try {
 			editInteractable<"road", "bounds">(road.id, "bounds", fillPath2D);
 		} catch (err) {}
@@ -89,15 +93,32 @@ function getRoadFillColor(state: InteractableState) {
 }
 
 export function renderHandle(ctx: CanvasRenderingContext2D, handle: Handle) {
-	// try {
-	// 	let parent = getInteractable(handle.parent);
-	// 	if (parent && parent.state !== "selected") return;
-	// } catch(e) {
-	// 	console.error(e)
-	// }
+	try {
+		const parent = getInteractable(handle.parent);
+		const isDraggingPoint = get(draggingPoint);
+		// If the road is selected or it's in the process of being created
+		const parentIsSelected = !parent || (parent && parent.state === "selected");
+		// Only render if:
+		// — the handle is part of a road that is selected.
+		// — the user is dragging a point relatively close to another
+		// 	  position point, and this handle is a position handle. that
+		// 	  will hopefully show the user that they can drop the currently
+		// 	  selected handle onto the handle we're currently rendering
+		const potentialRoadConnection =
+			isDraggingPoint &&
+			isDraggingPoint.affects !== "curve" &&
+			handle.affects !== "curve" &&
+			distance(isDraggingPoint.position, handle.position) < 200;
+		const shouldRender = parentIsSelected || potentialRoadConnection;
+		if (!shouldRender) return;
+	} catch (e) {
+		console.error(e);
+	}
 
 	point(ctx, handle.position, {
-		color: handle.affects === "curve" ? "lime" : "green",
-		radius: handle.affects === "curve" ? 5 : 10,
+		color:
+			handle.affects === "curve" ? HANDLE.COLOR_CURVE : HANDLE.COLOR_POSITION,
+		radius:
+			handle.affects === "curve" ? HANDLE.RADIUS_CURVE : HANDLE.RADIUS_POSITION,
 	});
 }

@@ -1,5 +1,6 @@
+import type { Road } from "@/types/road";
 import { get, writable } from "svelte/store";
-import type { Road } from "../types/road";
+
 export const roads = writable<Road[]>([]);
 
 export function addRoadToStore(road: Road) {

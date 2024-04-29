@@ -1,5 +1,5 @@
-import type { Coordinate } from "../types/position";
-import { Vector } from "../utils/vector";
+import type { Coordinate } from "@/types/position";
+import { Vector } from "@/utils/vector";
 
 /**
  *
