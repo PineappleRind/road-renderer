@@ -1,10 +1,5 @@
-import { derived, get, writable } from "svelte/store";
-
-import {
-	createMouseFollower,
-	destroyMouseFollower,
-} from "@/components/MouseFollower";
-import { HANDLE_RADIUS_CURVE, HANDLE_RADIUS_POSITION } from "@/config/handle";
+import { mouseFollower } from "@/components/MouseFollower";
+import HANDLE from "@/config/handle";
 import { getInteractable } from "@/events/interactables";
 import { mouseState } from "@/events/store";
 import {
@@ -14,10 +9,12 @@ import {
 	reverseRoad,
 	roads,
 } from "@/road/store";
+import { derived, get, writable } from "svelte/store";
+import Road from ".";
 
 import type { Coordinate } from "@/types/position";
-import { type Handle, type Road as RoadType } from "@/types/road";
-import { mouseFollowerOpen } from "@/components/MouseFollower.svelte";
+import type { Handle, Road as RoadType } from "@/types/road";
+import { Vector } from "../utils/vector";
 
 export const handles = derived(roads, (roads) => getAllHandlesFromRoads(roads));
 
@@ -40,14 +37,11 @@ function getHandleCollisions(mousePos: Coordinate): Handle | null {
 				mousePos,
 				handle.position,
 				handle.affects === "curve"
-					? HANDLE_RADIUS_CURVE
-					: HANDLE_RADIUS_POSITION,
+					? HANDLE.RADIUS_CURVE
+					: HANDLE.RADIUS_POSITION,
 			)
 		)
 			continue;
-		// ignore this handle if the parent isn't selected
-		// console.log(parentInteractable?.state);
-		if (parentInteractable && parentInteractable.state !== "selected") continue;
 
 		// now put it as a candidate
 		candidateHandles.push(handle);
@@ -65,11 +59,10 @@ function getHandleCollisions(mousePos: Coordinate): Handle | null {
 		});
 		// if we're dragging a point on top of another point..
 		if (validConnection(candidateHandles)) {
-			if (!mouseFollowerOpen)
-				createMouseFollower("Let go to connect with this road");
+			mouseFollower.create("Let go to connect with this road");
 			potentialRoadConnectionHandle = candidateHandles[1];
 		} else {
-			destroyMouseFollower();
+			mouseFollower.destroy();
 			potentialRoadConnectionHandle = null;
 		}
 		return get(draggingPoint);
@@ -80,12 +73,12 @@ function getHandleCollisions(mousePos: Coordinate): Handle | null {
 }
 
 function validConnection(candidateHandles: Handle[]) {
+	if (candidateHandles.length !== 2) return false;
+
 	const [drageeRoad, targetRoad] = candidateHandles.map(
 		(handle) => getRoad(handle.parent, true) as RoadType,
 	);
-
 	return (
-		candidateHandles.length === 2 &&
 		!candidateHandles.find((handle) => handle.affects === "curve") &&
 		candidateHandles[0].parent !== candidateHandles[1].parent &&
 		typeof drageeRoad.to !== "string" &&
@@ -144,15 +137,29 @@ export function getAllHandlesFromRoads(roads: RoadType[]) {
 
 function handleMovement(handle: Handle, coordinate: Coordinate) {
 	const parent = getRoad(handle.parent, true) as RoadType;
-
+	// console.log(`moving`, handle, parent);
 	if (typeof parent.to !== "string")
 		editRoad(parent.id, handle.affects, coordinate);
 	else editRoad(parent.to, "from", coordinate);
+	// ensure when you move curve points,
+	// the other connected road's curve moves too
+	if (handle.affects !== "curve") return;
+	const connectingRoad = getRoad(findConnectingRoad(parent));
+	if (!connectingRoad) return;
+
+	const midpoint =
+		typeof parent.to === "string" ? connectingRoad.from : parent.to;
+	const directlyOpposite = new Vector(parent.curve.x, parent.curve.y).lerp(
+		new Vector(midpoint.x, midpoint.y),
+		2,
+	);
+
+	editRoad(connectingRoad.id, "curve", directlyOpposite.asCoordinate());
 }
 
 function connect(beingDragged: Handle, target: Handle) {
-	const [beingDraggedRoad, targetRoad] = [beingDragged, target].map(
-		(handle) => getRoad(handle?.parent, true) as RoadType,
+	const [beingDraggedRoad, targetRoad] = [beingDragged, target].map((handle) =>
+		Road.find(handle?.parent),
 	);
 	if (beingDragged.affects === "from") reverseRoad(beingDraggedRoad.id);
 	if (target.affects === "to") reverseRoad(targetRoad.id);
@@ -166,7 +173,7 @@ export function addHandlePathsToPath(roadID: string, path: Path2D) {
 		path.arc(
 			handle.position.x,
 			handle.position.y,
-			handle.affects === "curve" ? HANDLE_RADIUS_CURVE : HANDLE_RADIUS_POSITION,
+			handle.affects === "curve" ? HANDLE.RADIUS_CURVE : HANDLE.RADIUS_POSITION,
 			0,
 			2 * Math.PI,
 		);
@@ -178,7 +185,7 @@ mouseState.subscribe((pos) => {
 	if (potentialRoadConnectionHandle && !pos.down && get(draggingPoint)) {
 		// if we are connecting with a road
 		connect(get(draggingPoint), potentialRoadConnectionHandle);
-		destroyMouseFollower();
+		mouseFollower.destroy();
 	}
 	if (!pos.down) {
 		draggingPoint.set(null);
@@ -190,6 +197,17 @@ mouseState.subscribe((pos) => {
 		// if the road is a ghost
 		if (get(roads)[getRoadIndex(activeHandle.parent, true) as number].ghost)
 			return;
-		handleMovement(activeHandle, pos);
+		handleMovement(activeHandle, { x: +pos.x, y: +pos.y });
 	}
 });
+
+function findConnectingRoad(road: RoadType): string | null {
+	if (typeof road.to === "string") return road.to;
+	// try to find a road that references this one
+	for (const roadCandidate of get(roads)) {
+		// @ts-ignore we know road.to is a string
+		if (road.to === roadCandidate.id || road.from === roadCandidate.id)
+			return roadCandidate.id;
+	}
+	return null;
+}

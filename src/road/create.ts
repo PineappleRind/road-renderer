@@ -1,10 +1,7 @@
 import { get } from "svelte/store";
 
-import {
-	createMouseFollower,
-	destroyMouseFollower,
-} from "@/components/MouseFollower";
-import { ROAD_MIN_LENGTH } from "@/config/road";
+import { mouseFollower } from "@/components/MouseFollower";
+import ROAD from "@/config/road";
 import { registerInteractable } from "@/events/interactables";
 import { mouseState } from "@/events/store";
 import { addRoadToStore, editRoad } from "@/road/store";
@@ -51,7 +48,7 @@ export async function createRoad(from?: Coordinate, to?: Coordinate) {
 			newRoad.to = await getUserMouseInput(message || "Choose an end point");
 			// Stop editing the road position on mouse move
 			unsubscribe();
-			if (distance(newRoad.from, newRoad.to) < ROAD_MIN_LENGTH)
+			if (distance(newRoad.from, newRoad.to) < ROAD.MIN_LENGTH)
 				return await getRoadEndpoint(
 					"Road too short — choose a different end point",
 				);
@@ -75,7 +72,7 @@ export async function createRoad(from?: Coordinate, to?: Coordinate) {
  * Prompts the user to click somewhere and gets the position
  */
 async function getUserMouseInput(prompt: string): Promise<Coordinate> {
-	createMouseFollower(prompt);
+	mouseFollower.create(prompt);
 	let resolveCache: (value: MouseEvent | PromiseLike<MouseEvent>) => void;
 	const e: MouseEvent = await new Promise((resolve) => {
 		resolveCache = resolve;
@@ -83,6 +80,6 @@ async function getUserMouseInput(prompt: string): Promise<Coordinate> {
 		document.addEventListener("click", resolve);
 	});
 	document.removeEventListener("click", resolveCache);
-	destroyMouseFollower();
+	mouseFollower.destroy();
 	return { x: e.clientX, y: e.clientY };
 }

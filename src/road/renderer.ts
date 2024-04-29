@@ -1,20 +1,5 @@
-import { get } from "svelte/store";
-
-import {
-	HANDLE_COLOR_CURVE,
-	HANDLE_COLOR_POSITION,
-	HANDLE_RADIUS_CURVE,
-	HANDLE_RADIUS_POSITION,
-} from "@/config/handle";
-import {
-	ROAD_FILL,
-	ROAD_FILL_HOVER,
-	ROAD_FILL_SELECTED,
-	ROAD_INNER_STROKE,
-	ROAD_INNER_STROKE_GHOST,
-	ROAD_OUTER_STROKE,
-	ROAD_OUTER_STROKE_GHOST,
-} from "@/config/road";
+import HANDLE from "@/config/handle";
+import ROAD from "@/config/road";
 import {
 	type Interactable,
 	type InteractableState,
@@ -22,20 +7,18 @@ import {
 	editInteractable,
 	getInteractable,
 } from "@/events/interactables";
-import { addHandlePathsToPath, draggingPoint, handles } from "@/road/handle";
+import { draggingPoint, handles } from "@/road/handle";
 import { offsetPath as getOffsetPath } from "@/road/offsetCurve";
-import { getRoad, roads } from "@/road/store";
-import { bezier, point } from "@/utils/canvas";
-
+import { getRoad } from "@/road/store";
 import type { Coordinate } from "@/types/position";
-import { type Handle, type Road } from "@/types/road";
+import type { Handle, Road } from "@/types/road";
+import { bezier, point } from "@/utils/canvas";
 import { distance } from "@/utils/position";
-import { ctx } from "@/render";
+import { get } from "svelte/store";
 
-export function render() {
-	const ctx$ = get(ctx);
-	for (const road of get(roads)) renderRoad(ctx$, road);
-	for (const handle of get(handles)) renderHandle(ctx$, handle);
+export function render(ctx: CanvasRenderingContext2D, roads: Road[]) {
+	for (const road of roads) renderRoad(ctx, road);
+	for (const handle of get(handles)) renderHandle(ctx, handle);
 }
 
 export function renderRoad(ctx: CanvasRenderingContext2D, road: Road) {
@@ -56,59 +39,56 @@ export function renderRoad(ctx: CanvasRenderingContext2D, road: Road) {
 		30,
 	);
 
-	const { a: roadLinesCurve } = getOffsetPath(road.from, road.curve, to, 0);
+	const roadLinesCurve = [[road.from, road.curve, to]];
 
 	const fillPath = combinePaths(offsetCurveA, offsetCurveB);
 	const fillPath2D = bezier(ctx, fillPath, {
 		color: getRoadFillColor(interactable?.state),
 		action: "fill",
 	});
+
 	bezier(ctx, roadLinesCurve, {
-		color: road.ghost ? ROAD_INNER_STROKE_GHOST : ROAD_INNER_STROKE,
+		color: road.ghost ? ROAD.INNER_STROKE_GHOST : ROAD.INNER_STROKE,
 		dashed: true,
 	});
 	bezier(ctx, offsetCurveA, {
-		color: road.ghost ? ROAD_OUTER_STROKE_GHOST : ROAD_OUTER_STROKE,
+		color: road.ghost ? "hsla(0,0%,0%,0.2)" : "black",
 	});
 	bezier(ctx, offsetCurveB, {
-		color: road.ghost ? ROAD_INNER_STROKE_GHOST : ROAD_INNER_STROKE,
+		color: road.ghost ? "hsla(0,0%,0%,0.2)" : "black",
 	});
 
 	if (!road.ghost) {
-		const fillPathWithHandles = addHandlePathsToPath(road.id, fillPath2D);
+		// const fillPathWithHandles = addHandlePathsToPath(road.id, fillPath2D);
 		try {
-			editInteractable<"road", "bounds">(
-				road.id,
-				"bounds",
-				new Path2D(fillPathWithHandles),
-			);
+			editInteractable<"road", "bounds">(road.id, "bounds", fillPath2D);
 		} catch (err) {}
 	}
-	// console.log(fillPath);
 }
 
 function combinePaths(path1: Coordinate[][], path2: Coordinate[][]) {
-	const flatPath2 = path2.flat();
-	flatPath2.reverse();
-	const flatPath1 = path1.flat();
+	const flatPath1 = path1;
+	const flatPath2 = path2.toReversed().map((x) => x.toReversed());
 	const joined = [
-		flatPath1,
-		flatPath1.at(-1),
-		flatPath2[0],
-		flatPath2,
-		flatPath1[0],
+		...flatPath1,
+		flatPath2.at(0)[0],
+		...flatPath2,
+		flatPath1[0][0],
 	];
+
 	return joined;
 }
 
 function getRoadFillColor(state: InteractableState) {
 	switch (state) {
+		case "idle":
+			return "white";
 		case "hover":
-			return ROAD_FILL_HOVER;
+			return "#eeeeee";
 		case "selected":
-			return ROAD_FILL_SELECTED;
+			return "#dddddd";
 		default:
-			return ROAD_FILL;
+			return "white";
 	}
 }
 
@@ -137,8 +117,8 @@ export function renderHandle(ctx: CanvasRenderingContext2D, handle: Handle) {
 
 	point(ctx, handle.position, {
 		color:
-			handle.affects === "curve" ? HANDLE_COLOR_CURVE : HANDLE_COLOR_POSITION,
+			handle.affects === "curve" ? HANDLE.COLOR_CURVE : HANDLE.COLOR_POSITION,
 		radius:
-			handle.affects === "curve" ? HANDLE_RADIUS_CURVE : HANDLE_RADIUS_POSITION,
+			handle.affects === "curve" ? HANDLE.RADIUS_CURVE : HANDLE.RADIUS_POSITION,
 	});
 }

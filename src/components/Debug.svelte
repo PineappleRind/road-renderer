@@ -1,10 +1,10 @@
 <script lang="ts">
-  import { roads as roadsstore } from "@/road/store";
+import { roads as roadsstore } from "@/road/store";
 
-  let roads: any;
-  roadsstore.subscribe((newroads) => {
-    roads = JSON.stringify(newroads, null, 2);
-  });
+let roads: string;
+roadsstore.subscribe((newroads) => {
+	roads = JSON.stringify(newroads, null, 2);
+});
 </script>
 
 <code>{roads}</code>

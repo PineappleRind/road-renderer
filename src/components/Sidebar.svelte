@@ -1,24 +1,27 @@
-<script lang="ts">
-  import { currentSelection } from "@/events/interactables";
-  import Debug from "@/components/Debug.svelte";
-  import road from "@/road";
+<script>
+import { interactableState } from "../events/interactables";
+import Debug from "./Debug.svelte";
+let id;
+interactableState.subscribe((newState) => {
+	if (!newState) {
+		id = "Nothing selected";
+		return;
+	}
+	if (newState.to === "selected") id = newState.id;
+});
 
-  let id;
-  currentSelection.subscribe((newID: string) => {
-    if (!newID) id = "";
-    if (newID) id = newID;
-  });
-
-  let tabActive = "inspector";
-  let tabs = ["inspector", "debug"];
+// biome-ignore lint/style/useConst: svelte binding below
+let tabActive = "inspector";
+const tabs = ["inspector", "debug"];
 </script>
 
 <aside>
   <div class="tabPicker">
     {#each tabs as tab}
+      <!-- svelte-ignore a11y-click-events-have-key-events -->
       <div
         class="tabTrigger"
-        on:click={() => (tabActive = tab)}
+        on:click={() => { tabActive = tab }}
         class:active={tabActive === tab}
       >
         {tab}
@@ -28,7 +31,7 @@
   <div class="tab" class:tabActive={tabActive === "inspector"}>
     {#if id}
       <p>{id}</p>
-      <button on:click={() => road.delete(id)}>Delete road</button>
+      <!-- <button on:click={() => road.delete(id)}>Delete road</button> -->
     {/if}
   </div>
   <div class="tab" class:tabActive={tabActive === "debug"}><Debug /></div>

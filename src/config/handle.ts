@@ -1,4 +1,6 @@
-export const HANDLE_RADIUS_POSITION = 10;
-export const HANDLE_RADIUS_CURVE = 5;
-export const HANDLE_COLOR_POSITION = "green";
-export const HANDLE_COLOR_CURVE = "lime";
+export default {
+	RADIUS_POSITION: 10,
+	RADIUS_CURVE: 5,
+	COLOR_POSITION: "green",
+	COLOR_CURVE: "lime",
+};

@@ -33,10 +33,10 @@ export function offsetPath(
 	const normal1 = v1.normalize().withLength(thickness).getPerpendicular();
 	const normal2 = v2.normalize().withLength(thickness).getPerpendicular();
 
-	const p1a = p1v.add(normal1);
-	const p1b = p1v.subtract(normal1);
-	const p2a = p2v.add(normal2);
-	const p2b = p2v.subtract(normal2);
+	const p1a = p1v.add(normal1).round();
+	const p1b = p1v.subtract(normal1).round();
+	const p2a = p2v.add(normal2).round();
+	const p2b = p2v.subtract(normal2).round();
 
 	const c1a = cv.add(normal1);
 	const c1b = cv.subtract(normal1);
@@ -48,9 +48,9 @@ export function offsetPath(
 	const line2a = { p1: p2a, p2: c2a };
 	const line2b = { p1: p2b, p2: c2b };
 
-	const shouldSplit = false; //v1.angleBetween(v2, true) > Math.PI / 2;
+	const split = v1.angleBetween(v2, true) > Math.PI / 2;
 
-	if (shouldSplit) {
+	if (split) {
 		const t = getNearestPoint(p1v, cv, p2v);
 		const pt = getPointInQuadraticCurve(t, p1v, cv, p2v);
 		const t1 = p1v.scaleBy(1 - t).add(cv.scaleBy(t));
@@ -64,41 +64,41 @@ export function offsetPath(
 
 		qa = pt.add(vt);
 		qb = pt.subtract(vt);
-		// These have a problem.
+
 		const lineqa = { p1: qa, p2: qa.add(vt.getPerpendicular()) };
 		const lineqb = { p1: qb, p2: qb.add(vt.getPerpendicular()) };
 
-		q2a = linesIntersect(line2a, lineqa).position.asCoordinate();
-		q1a = linesIntersect(line1a, lineqa).position.asCoordinate();
-		q1b = linesIntersect(line1b, lineqb).position.asCoordinate();
-		q2b = linesIntersect(line2b, lineqb).position.asCoordinate();
+		q1a = linesIntersect(line1a, lineqa).position?.asCoordinate();
+		q2a = linesIntersect(line2a, lineqa).position?.asCoordinate();
+		q1b = linesIntersect(line1b, lineqb).position?.asCoordinate();
+		q2b = linesIntersect(line2b, lineqb).position?.asCoordinate();
 	} else {
-		ca = linesIntersect(line1a, line2a).position.asCoordinate();
-		cb = linesIntersect(line1b, line2b).position.asCoordinate();
+		ca = linesIntersect(line1a, line2a).position?.asCoordinate();
+		cb = linesIntersect(line1b, line2b).position?.asCoordinate();
 	}
 
 	return {
-		a: shouldSplit
+		a: split
 			? [
 					[p1a.asCoordinate(), q1a, qa.asCoordinate()],
-					[p2a.asCoordinate(), q2a, p2a.asCoordinate()],
-			  ]
+					[qa.asCoordinate(), q2a, p2a.asCoordinate()],
+				]
 			: [[p1a.asCoordinate(), ca, p2a.asCoordinate()]],
-		b: shouldSplit
+		b: split
 			? [
 					[p1b.asCoordinate(), q1b, qb.asCoordinate()],
-					[p2b.asCoordinate(), q2b, p2b.asCoordinate()],
-			  ]
+					[qb.asCoordinate(), q2b, p2b.asCoordinate()],
+				]
 			: [[p1b.asCoordinate(), cb, p2b.asCoordinate()]],
 	};
 }
 
-const getPointInQuadraticCurve = function (
+const getPointInQuadraticCurve = (
 	t: number,
 	p1: Vector,
 	pc: Vector,
 	p2: Vector,
-) {
+) => {
 	const [p1x, p1y] = p1.components;
 	const [pcx, pcy] = pc.components;
 	const [p2x, p2y] = p2.components;
@@ -110,64 +110,53 @@ const getPointInQuadraticCurve = function (
 
 // http://microbians.com/math/Gabriel_Suchowolski_Quadratic_bezier_offsetting_with_selective_subdivision.pdf
 // http://www.math.vanderbilt.edu/~schectex/courses/cubic/
-const getNearestPoint = function (p1: Vector, pc: Vector, p2: Vector) {
-	const v0 = pc.subtract(p1);
-	const v1 = p2.subtract(pc);
-
-	const a = v1.subtract(v0).dotProduct(v1.subtract(v0));
-	const b = 3 * (v1.dotProduct(v0) - v0.dotProduct(v0));
-	const c = 3 * v0.dotProduct(v0) - v1.dotProduct(v0);
-	const d = -1 * v0.dotProduct(v0);
-
-	const p = -b / (3 * a);
-	const q = p * p * p + (b * c - 3 * a * d) / (6 * a * a);
-	const r = c / (3 * a);
-
-	const s = Math.sqrt(q * q + Math.pow(r - p * p, 3));
-	const t = Math.cbrt(q + s) + Math.cbrt(q - s) + p;
+const getNearestPoint = (p1: Vector, pc: Vector, p2: Vector) => {
+	const d1 = Math.sqrt(pc.distanceToSquared(p1));
+	const d2 = Math.sqrt(pc.distanceToSquared(p2));
+	const t = d1 / (d1 + d2);
 
 	return t;
 };
 
-enum IntersectionType {
+enum Intersection {
 	Intersecting = 0,
 	NonIntersecting = 1,
 	Coincident = 2,
 }
+
 function linesIntersect(
 	line1: { p1: Vector; p2: Vector },
 	line2: { p1: Vector; p2: Vector },
-) {
+): { type: Intersection; position: Vector } {
+	const intersection = { type: Intersection.Coincident, position: undefined };
 	const { x: l1p1x, y: l1p1y } = line1.p1.round().asCoordinate();
 	const { x: l1p2x, y: l1p2y } = line1.p2.round().asCoordinate();
 	const { x: l2p1x, y: l2p1y } = line2.p1.round().asCoordinate();
 	const { x: l2p2x, y: l2p2y } = line2.p2.round().asCoordinate();
-	let denominator =
+	const denominator =
 		(l2p2y - l2p1y) * (l1p2x - l1p1x) - (l2p2x - l2p1x) * (l1p2y - l1p1y);
 	const na =
 		(l2p2x - l2p1x) * (l1p1y - l2p1y) - (l2p2y - l2p1y) * (l1p1x - l2p1x);
 	const nb =
 		(l1p2x - l1p1x) * (l1p1y - l2p1y) - (l1p2y - l1p1y) * (l1p1x - l2p1x);
-	// console.log(denominator, na, nb, line1, line2);
-	if (denominator === 0) denominator++;
-	// return { position: new Vector(0, 0), type: IntersectionType.Coincident };
+
+	if (denominator === 0 || (na === 0 && nb === 0)) return intersection;
 	const ua = na / denominator;
 	const ub = nb / denominator;
+
+	intersection.position = line1.p1.interpolateTo(line1.p2, ua).round();
 	if (ua >= 0.0 && ua <= 1.0 && ub >= 0.0 && ub <= 1.0) {
-		return {
-			type: IntersectionType.Intersecting,
-			position: new Vector(l1p1x, l1p1y).interpolateTo(
-				new Vector(l1p2x, l1p2y),
-				ua,
-			),
-		};
+		intersection.type = Intersection.Intersecting;
 	} else {
-		return {
-			type: IntersectionType.NonIntersecting,
-			position: new Vector(l1p1x, l1p1y).interpolateTo(
-				new Vector(l1p2x, l1p2y),
-				ua,
-			),
-		};
+		intersection.type = Intersection.NonIntersecting;
 	}
+	return intersection;
 }
+
+export const testable = {
+	linesIntersect,
+	Intersection,
+	getNearestPoint,
+	getPointInQuadraticCurve,
+	offsetPath,
+};

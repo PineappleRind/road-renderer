@@ -29,7 +29,7 @@ export function getRoadIndex(roadID: string, loud?: boolean) {
 	const roadIndex = get(roads).findIndex((r) => r.id === roadID);
 	if (roadIndex === -1) {
 		if (loud) throw new Error("Could not find road");
-		else return false;
+		return false;
 	}
 	return roadIndex;
 }

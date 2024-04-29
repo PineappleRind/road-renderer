@@ -8,23 +8,21 @@ export function createSlots(slots) {
 	}
 
 	function createSlotFn(element) {
-		return function () {
-			return {
-				c: noop,
+		return () => ({
+			c: noop,
 
-				m: function mount(target, anchor) {
-					insert(target, element, anchor);
-				},
+			m: function mount(target, anchor) {
+				insert(target, element, anchor);
+			},
 
-				d: function destroy(detaching) {
-					if (detaching) {
-						detach(element);
-					}
-				},
+			d: function destroy(detaching) {
+				if (detaching) {
+					detach(element);
+				}
+			},
 
-				l: noop,
-			};
-		};
+			l: noop,
+		});
 	}
 	return svelteSlots;
 }

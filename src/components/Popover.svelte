@@ -1,5 +1,5 @@
-<script context="module" lang="ts">
-  export let popoverOpen: HTMLDivElement | undefined;
+<script lang="ts" context="module">
+export let popoverOpen: HTMLDivElement | undefined;
 </script>
 
 <script lang="ts">
